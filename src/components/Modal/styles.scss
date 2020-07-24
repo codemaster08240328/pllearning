@@ -1,0 +1,53 @@
+@import '../../styles/base.scss';
+
+.mmk-modal-back {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  min-height: 100vh;
+  background-color: #000;
+  opacity: 0.6;
+}
+
+.mmk-modal-bottom {
+  &-content {
+    background-color: $mmk-white;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: calc(100% - 100px);
+    border-radius: 20px 20px 0 0;
+    overflow-y: scroll;
+  }
+}
+
+.mmk-modal-content {
+  background-color: $mmk-white;
+  position: fixed;
+  top: 50px;
+  left: 24px;
+  right: 24px;
+  height: fit-content;
+  border-radius: 4px;
+
+  &-img {
+    height: fit-content;
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  &-title {
+    text-align: center;
+    color: color('text', 'blue-dark');
+    padding: 0 24px;
+    margin-top: 10px;
+  }
+
+  &-desc {
+    text-align: center;
+    padding: 0 16px;
+    margin-top: 8px;
+  }
+}

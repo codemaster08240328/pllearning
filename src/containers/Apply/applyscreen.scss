@@ -1,0 +1,259 @@
+@import '../../styles/base.scss';
+
+.mmk-apply {
+  display: block;
+  height: calc(100% - 16px);
+  padding-top: 16px;
+  background-image: linear-gradient(to bottom, #ffffff, #f8f8f8);
+}
+
+.go-back {
+  width: fit-content;
+  height: fit-content;
+  margin-left: 16px;
+  margin-top: 8px;
+  display: inline-flex;
+}
+
+.mmk-loan-apply-content-wrapper {
+  margin-top: 8px;
+  min-height: calc(100% - 114px);
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  background-image: linear-gradient(to bottom, #ffffff, #f8f8f8);
+
+  .next-btn-wrapper {
+    width: calc(100%);
+  }
+}
+
+.mmk-loan-amt-hello {
+  @include font('Open Sans', bold);
+
+  font-size: font-size('small');
+  color: color('text', 'blue-dark');
+  letter-spacing: 2px;
+  line-height: 30px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.mmk-loan-duration {
+  margin-top: 16px;
+
+  &-item {
+    @include font('Open Sans', bold);
+    border: solid 1px $mmk-super-light-light-grey;
+    border-radius: 4px;
+    text-align: left;
+    margin-bottom: 16px;
+    padding: 10px 16px;
+    background-color: $mmk-white;
+
+    line-height: 30px;
+    letter-spacing: 2px;
+    font-size: font-size('small');
+    text-transform: uppercase;
+    color: color('text', 'blue-dark');
+  }
+
+  .item-clicked {
+    background-color: $mmk-dark-blue;
+    color: $mmk-white;
+    border-color: $mmk-dark-blue;
+  }
+}
+
+.mmk-income-type {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 40px;
+
+  &-item {
+    width: 128px;
+    height: 114px;
+    border-radius: 4px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    label {
+      margin-top: 8px;
+    }
+  }
+
+  .item-clicked {
+    background-color: $mmk-dark-blue;
+
+    label {
+      color: $mmk-white;
+    }
+  }
+}
+
+.mmk-company-warn {
+  text-align: left;
+  display: flex;
+
+  .mmk-company-warn-text {
+    @include font();
+    font-size: font-size('xx-small');
+    color: color('text');
+    text-align: left;
+    line-height: 14px;
+    margin-left: 8px;
+  }
+}
+
+.mmk-company-type {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  border-radius: 3px;
+  border: solid 1px #d6d6d6;
+  background-color: #ffffff;
+  height: 40px;
+
+  &-placeholder {
+    @include font();
+    color: $mmk-super-light-light-grey;
+    font-size: font-size('small');
+  }
+
+  &-value {
+    @include font();
+    color: color('text');
+    font-size: font-size('small');
+  }
+}
+
+.mmk-company-modal {
+  &-close {
+    margin-top: 16px;
+    margin-right: 16px;
+    margin-left: auto;
+    width: fit-content;
+  }
+
+  &-title {
+    color: color('text', 'blue-dark');
+    padding: 0 24px;
+    margin-top: 16px;
+  }
+
+  &-types {
+    padding: 0 24px;
+    margin-top: 16px;
+  }
+}
+
+.mmk-bank-salary {
+  &-items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 16px;
+    row-gap: 16px;
+    margin-top: 16px;
+  }
+
+  &-item {
+    opacity: 0.2;
+    border-radius: 2px;
+
+    &-selected {
+      opacity: 1;
+      background-color: white;
+      box-shadow: 0 10px 20px 0 rgba(0, 0, 0, 0.07);
+    }
+  }
+
+  &-select {
+    margin-top: 16px;
+
+    .mmk-loan-duration-item {
+      width: calc(100% - 34px);
+    }
+
+    .item-clicked {
+      background-color: $mmk-dark-blue;
+      color: $mmk-white;
+      border-color: $mmk-dark-blue;
+    }
+  }
+
+  &-modal {
+    &-content {
+      @include font();
+      font-size: font-size('medium');
+      line-height: 1.5em;
+      text-align: center;
+      color: color('text');
+      padding: 0 16px;
+      margin-top: 8px;
+    }
+
+    &-gold-loan {
+      padding: 0 16px;
+    }
+  }
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.mmk-address {
+  &-item {
+    padding: 16px 0;
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: $mmk-super-light-light-grey;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &-text {
+      font-size: font-size('small');
+      line-height: 1.5em;
+      text-align: left;
+      margin-right: 8px;
+    }
+
+    &-icon {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  &-add {
+    padding: 16px 0;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+.mmk-address-modal-city {
+  font-size: font-size('small');
+  line-height: 22px;
+}
+
+.mmk-modal-sorry {
+  padding: 0 16px;
+  text-align: center;
+}
+
+.mmk-bank-modal-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  column-gap: 16px;
+  padding: 0 24px;
+  margin-top: 24px;
+  margin-bottom: 32px;
+}

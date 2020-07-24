@@ -1,0 +1,106 @@
+@import '../../styles/base.scss';
+
+.mmk-footer {
+  background-color: $mmk-navy;
+  padding: 32px 24px;
+
+  &-menu {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    @include media('<=tablet') {
+      grid-template-columns: repeat(1, 1fr);
+      column-gap: 0;
+      row-gap: 25px;
+    }
+  }
+
+  .mmk-footer-menu {
+    width: 100%;
+    text-align: left;
+
+    &-title {
+      @include font('Open Sans', bold);
+      font-size: font-size('x-small');
+      color: $mmk-white;
+    }
+
+    &-tools {
+      margin-top: 7px;
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      row-gap: 8px;
+
+      div {
+        @include font();
+        color: $mmk-white;
+        font-size: font-size('xx-small');
+      }
+    }
+
+    &-bank {
+      margin-top: 7px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      row-gap: 8px;
+      column-gap: 16px;
+
+      div {
+        @include font();
+        color: $mmk-white;
+        font-size: font-size('xx-small');
+      }
+    }
+  }
+
+  .mmk-footer-questions {
+    text-align: center;
+    margin-top: 24px;
+
+    &-title {
+      @include font('Open Sans', bold);
+      color: $mmk-white;
+      font-size: font-size('x-small');
+      line-height: 1.5em;
+    }
+
+    &-email {
+      @include font();
+      color: $mmk-white;
+      font-size: font-size('xx-small');
+      line-height: 14px;
+      margin-top: 8px;
+    }
+
+    &-social {
+      display: inline-grid;
+      grid-template-columns: repeat(4, 1fr);
+      column-gap: 8px;
+      width: fit-content;
+      margin-top: 17px;
+
+      &-item {
+        width: 48px;
+        height: 48px;
+        background-color: $mmk-dark-blue;
+      }
+    }
+  }
+
+  .mmk-footer-toc {
+    text-align: center;
+
+    &-copyright {
+      @include font();
+      color: $mmk-white;
+      font-size: font-size('xx-small');
+    }
+
+    &-toc {
+      @include font();
+      margin-top: 24px;
+      color: $mmk-white;
+      font-size: font-size('xx-small');
+    }
+  }
+}

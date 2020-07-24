@@ -1,0 +1,31 @@
+@import '../../styles/base.scss';
+
+.application-sorry {
+  &-top-section {
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    z-index: 100;
+    right: 0;
+    left: 0;
+    background: color('gradient', 'sapphire');
+  }
+
+  &-content {
+    margin-top: 54px;
+    text-align: center;
+    padding: 40px 24px 32px 24px;
+
+    &-banner {
+      &-desc {
+        @include font();
+        margin-top: 8px;
+        text-align: center;
+        font-size: font-size('medium');
+        line-height: 24px;
+      }
+    }
+  }
+}

@@ -1,0 +1,73 @@
+@import '../../styles/base.scss';
+
+.home-page {
+  .home-top-section {
+    background: color('gradient', 'sapphire');
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    z-index: 100;
+    right: 0;
+    left: 0;
+  }
+
+  .home-img {
+    margin-top: 48px;
+  }
+
+  .home-apply-section {
+    padding: 24px;
+    text-align: center;
+
+    .home-apply-item {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+
+      span {
+        font-size: font-size('small');
+        margin-left: 8.5px;
+      }
+    }
+  }
+
+  .home-pl-data {
+    background-color: $mmk-cotton;
+    padding: 32px 24px;
+    text-align: center;
+
+    &-content {
+      height: 100px;
+      width: 100%;
+      background-color: $mmk-white;
+      border-radius: 4px;
+      margin-top: 16px;
+    }
+  }
+}
+
+.slider-content {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 16px;
+  row-gap: 16px;
+  margin-top: 16px;
+
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.home-pl-faq {
+  padding: 32px 0 16px 0;
+
+  &-title {
+    color: color('text', 'blue-dark');
+    text-align: center;
+  }
+}

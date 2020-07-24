@@ -1,0 +1,42 @@
+@import '../../styles/base.scss';
+
+.mmk-file-upload {
+  height: 24px;
+  border-radius: 3px;
+  border: solid 1px #d6d6d6;
+  background-color: #ffffff;
+  display: flex;
+  padding: 8px 12px;
+  justify-content: space-between;
+  align-items: center;
+
+  .placeholder {
+    color: $mmk-light-grey;
+    font-size: font-size('small');
+    line-height: 1.57;
+  }
+
+  .input-value {
+    font-size: font-size('small');
+    line-height: 1.57;
+  }
+
+  &-input {
+    display: none;
+  }
+
+  &-error {
+    border-color: $mmk-red;
+  }
+}
+
+.file-upload-error-wrapper {
+  display: flex;
+  margin-top: 9px;
+
+  &-txt {
+    font-size: font-size('xx-small');
+    margin-left: 8px;
+    color: $mmk-red;
+  }
+}

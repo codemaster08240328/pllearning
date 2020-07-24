@@ -1,0 +1,81 @@
+@import '../../styles/base.scss';
+
+.mmk-select-wrapper {
+  position: relative;
+  width: 100%;
+  text-align: left;
+}
+
+.mmk-select {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 3px;
+  border: solid 1px #d6d6d6;
+  background-color: #ffffff;
+  height: 40px;
+  margin-top: 8px;
+
+  &:focus-within {
+    border-color: $mmk-average-blue;
+  }
+
+  &-input {
+    @include font();
+    flex: 1;
+    border: none;
+    font-size: font-size('small');
+    line-height: 1.57em;
+    color: color('text');
+    margin-right: 8px;
+
+    &::placeholder {
+      color: $mmk-light-grey;
+    }
+
+    &:active {
+      border: none;
+      outline: none;
+      background-color: transparent;
+    }
+
+    &:focus {
+      border: none;
+      outline: none;
+      background-color: transparent;
+    }
+
+    &:disabled {
+      background-color: transparent;
+    }
+  }
+}
+
+.mmk-dropdown {
+  border-radius: 3px;
+  border: solid 1px #d6d6d6;
+  background-color: #ffffff;
+  padding: 0 12px;
+  position: absolute;
+  top: 44px;
+  left: 0;
+  right: 0;
+
+  &-item {
+    @include font();
+    height: 24px;
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: #d6d6d6;
+    text-align: left;
+    padding: 8px 0;
+
+    color: color('text');
+    line-height: 24px;
+    font-size: font-size('small');
+  }
+
+  &-item-no-border {
+    border: none;
+  }
+}

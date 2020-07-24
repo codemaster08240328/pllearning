@@ -1,0 +1,85 @@
+@import './colors.scss';
+@import './fonts.scss';
+@import './media.scss';
+@import './size.scss';
+
+$sizes: (
+  '5': 5px,
+  '8': 8px,
+  '10': 10px,
+  '12': 12px,
+  '15': 15px,
+  '16': 16px,
+  '18': 18px,
+  '20': 20px,
+  '24': 24px,
+  '25': 25px,
+  '30': 30px,
+  '32': 32px,
+  '36': 36px,
+  '40': 40px,
+);
+
+.pl {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      padding-left: $size;
+    }
+  }
+}
+
+.pr {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      padding-right: $size;
+    }
+  }
+}
+
+.pt {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      padding-top: $size;
+    }
+  }
+}
+
+.pb {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      padding-bottom: $size;
+    }
+  }
+}
+
+.ml {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      margin-left: $size;
+    }
+  }
+}
+
+.mr {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      margin-right: $size;
+    }
+  }
+}
+
+.mt {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      margin-top: $size;
+    }
+  }
+}
+
+.mb {
+  @each $name, $size in $sizes {
+    &-#{$name} {
+      margin-bottom: $size;
+    }
+  }
+}

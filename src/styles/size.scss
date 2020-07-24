@@ -1,0 +1,22 @@
+$font-size: (
+  'giant': 40px,
+  'xx-large': 30px,
+  'x-large': 24px,
+  'large': 18px,
+  'medium': 16px,
+  'small': 14px,
+  'x-small': 12px,
+  'xx-small': 11px,
+);
+
+.font-size {
+  @each $name, $size in $font-size {
+    &-#{$name} {
+      font-size: $size;
+    }
+  }
+}
+
+@function font-size($size: 'medium') {
+  @return map-get($font-size, $size);
+}

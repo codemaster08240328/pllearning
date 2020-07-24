@@ -1,0 +1,60 @@
+@import '../../styles/base.scss';
+
+.mmk-input-box {
+  border: solid 1px #d6d6d6;
+  border-radius: 3px;
+  height: 40px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-color: $mmk-white;
+
+  &-input {
+    @include font();
+    border: none;
+    font-size: font-size('small');
+    line-height: 22px;
+    color: $mmk-charcoal;
+    margin-left: 8px;
+    margin-right: 8px;
+    flex: 1;
+
+    &::placeholder {
+      color: $mmk-light-grey;
+    }
+
+    &:active {
+      border: none;
+      outline: none;
+      background-color: transparent;
+    }
+
+    &:focus {
+      border: none;
+      outline: none;
+      background-color: transparent;
+    }
+
+    &:disabled {
+      background-color: transparent;
+    }
+  }
+
+  &:focus-within {
+    border-color: $mmk-average-blue;
+  }
+
+  .left-icon {
+    width: 16px;
+    height: 16px;
+    margin-left: 12px;
+  }
+}
+
+.input-disabled {
+  background-color: rgba(239, 239, 239, 0.6);
+}
+
+.mmk-input-error {
+  border-color: $mmk-red;
+}

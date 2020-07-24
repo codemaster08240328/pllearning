@@ -1,0 +1,34 @@
+@import '../../styles/base.scss';
+
+.mmk-table-wrapper {
+  border-radius: 3px;
+  border: solid 1px #e2e2e2;
+  background-color: #ffffff;
+  padding: 8px 0;
+}
+
+.even-row {
+  background-color: #fff;
+  display: flex;
+}
+
+.odd-row {
+  background-color: #f7f7f7;
+  display: flex;
+}
+
+.label-field {
+  padding: 8px 16px;
+  width: 50%;
+  text-align: left;
+  font-size: font-size('small');
+  line-height: 1.57;
+}
+
+.value-field {
+  padding: 8px 16px;
+  width: 50%;
+  text-align: right;
+  font-size: font-size('small');
+  line-height: 1.57;
+}

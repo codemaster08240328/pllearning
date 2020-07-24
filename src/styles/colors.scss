@@ -1,0 +1,114 @@
+$mmk-dark-blue: #1669ba;
+$mmk-average-blue: #3ba3ff;
+$mmk-bright-blue: #40baf5;
+$mmk-white: #fff;
+
+$mmk-navy: #093158;
+$mmk-cotton: #e7f3fd;
+$mmk-charcoal: #3a3a3a;
+$mmk-green: #37d47e;
+$mmk-red: #d54c4c;
+$mmk-yellow: #f9da4b;
+
+$mmk-dark: #fff;
+$mmk-dark-grey: #333;
+$mmk-grey: #666;
+$mmk-light-grey: #999;
+$mmk-super-light-grey: #d0d0d0;
+$mmk-super-light-light-grey: #e2e2e2;
+
+$opacity: (
+  '1': 0.1,
+  '2': 0.2,
+  '3': 0.3,
+  '4': 0.4,
+  '5': 0.5,
+  '6': 0.6,
+  '7': 0.7,
+  '8': 0.8,
+  '9': 0.9,
+);
+
+$palette: (
+  'text': (
+    'primary': $mmk-charcoal,
+    'blue-dark': $mmk-navy,
+    'white': $mmk-white,
+  ),
+  'button': (
+    'primary': $mmk-average-blue,
+    'dark-primary': #2381d5,
+    'inactive': $mmk-super-light-grey,
+    'dark-white': #eaeff4,
+  ),
+  'gradient': (
+    'sapphire': linear-gradient(135deg, #0b4182, #1e88e5 52%, #40baf5 97%),
+    'dark-sapphire':
+      linear-gradient(
+        135deg,
+        #0b4182,
+        rgb(0, 90, 159) 52%,
+        rgb(0, 108, 185) 97%
+      ),
+    'top-fade':
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0) 97%),
+    'bottom-fade':
+      linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7) 97%),
+  ),
+);
+
+.color {
+  @each $color-spectrum, $variants in $palette {
+    &-#{$color-spectrum} {
+      @each $color, $value in $variants {
+        &-#{$color} {
+          color: $value;
+        }
+      }
+    }
+  }
+}
+
+.opacity {
+  @each $key, $value in $opacity {
+    &-#{$key} {
+      opacity: $value;
+    }
+  }
+}
+
+.bg-color {
+  @each $color-spectrum, $variants in $palette {
+    &-#{$color-spectrum} {
+      @each $color, $value in $variants {
+        &-#{$color} {
+          background-color: $value;
+        }
+      }
+    }
+  }
+}
+
+$primary-color-key: 'primary' !default;
+
+@function color(
+  $name: 'primary',
+  $variant: $primary-color-key,
+  $palette: $palette
+) {
+  $color: null;
+  // Get the color spectrum
+  $color-spectrum: map-get($palette, $name);
+  // Get the color variant
+  @if $color-spectrum {
+    $color: map-get($color-spectrum, $variant);
+
+    @if not($color) {
+      @warn 'Color `#{$variant}` does not exist in spectrum `#{$name}`';
+    }
+  } @else {
+    @warn 'Spectrum `#{$name}` does not exist';
+  }
+
+  @return $color;
+}

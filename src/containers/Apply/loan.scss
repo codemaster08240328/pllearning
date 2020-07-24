@@ -1,0 +1,217 @@
+@import '../../styles/base.scss';
+
+.mmk-loan {
+  display: block;
+  height: calc(100% - 16px);
+  padding-top: 16px;
+  background-image: linear-gradient(to bottom, #ffffff, #f8f8f8);
+}
+
+.go-back {
+  width: fit-content;
+  height: fit-content;
+  margin-left: 16px;
+}
+
+.mmk-loan-dependants {
+  margin-top: 32px;
+  text-align: center;
+  padding: 0 24px;
+
+  &-items {
+    margin-top: 16px;
+  }
+
+  &-item {
+    @include font('Open Sans', bold);
+    height: 30px;
+    border: solid 1px $mmk-super-light-light-grey;
+    border-radius: 4px;
+    text-align: left;
+    margin-bottom: 16px;
+    padding: 10px 16px;
+    background-color: $mmk-white;
+
+    line-height: 30px;
+    letter-spacing: 2px;
+    font-size: font-size('small');
+    text-transform: uppercase;
+    color: color('text', 'blue-dark');
+  }
+}
+
+.item-clicked {
+  background-color: $mmk-dark-blue;
+  color: $mmk-white;
+  border-color: $mmk-dark-blue;
+}
+
+.mmk-loan-confirm-email {
+  margin-top: 8px;
+  min-height: calc(100% - 114px);
+  padding: 24px;
+  text-align: center;
+  position: relative;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+
+  .next-btn-wrapper {
+    width: calc(100%);
+  }
+
+  &-notify {
+    text-align: left;
+    display: flex;
+
+    &-text {
+      @include font();
+      font-size: font-size('xx-small');
+      color: color('text');
+      text-align: left;
+      line-height: 14px;
+      margin-left: 8px;
+    }
+  }
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.mmk-loan-email-select {
+  margin-top: 8px;
+  padding: 24px;
+  position: relative;
+  height: fit-content;
+  min-height: calc(100% - 114px);
+  flex-direction: column;
+  display: flex;
+  text-align: center;
+
+  .next-btn-wrapper {
+    width: 100%;
+  }
+
+  &-item {
+    padding: 16px 0;
+    border-style: solid;
+    border-width: 0 0 1px 0;
+    border-color: $mmk-super-light-light-grey;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &-text {
+      font-size: font-size('small');
+      line-height: 1.5em;
+      text-align: left;
+      margin-right: 8px;
+    }
+  }
+
+  &-add {
+    padding: 16px 0;
+    display: flex;
+    justify-content: space-between;
+  }
+}
+
+.mmk-loan-office {
+  text-align: center;
+  margin-top: 8px;
+  padding: 24px;
+  position: relative;
+  height: fit-content;
+  min-height: calc(100% - 114px);
+  flex-direction: column;
+  display: flex;
+
+  .next-btn-wrapper {
+    width: 100%;
+  }
+}
+
+.mmk-upload-docu {
+  text-align: center;
+  margin-top: 8px;
+  padding: 24px;
+  position: relative;
+  height: fit-content;
+  min-height: calc(100% - 114px);
+  flex-direction: column;
+  display: flex;
+  background-image: linear-gradient(to bottom, #ffffff, #f8f8f8);
+
+  &-img {
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  &-desc {
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+
+  &-items {
+    margin-top: 21px;
+  }
+
+  &-upload-item {
+    text-align: left;
+  }
+
+  &-item {
+    height: 50px;
+    border-radius: 4px;
+    border: solid 1px $mmk-super-light-light-grey;
+    background-color: $mmk-white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 12px;
+    margin-bottom: 16px;
+
+    &-title {
+      @include font('Open Sans', bold);
+      line-height: 2.14;
+      letter-spacing: 2px;
+      color: color('text', 'blue-dark');
+      text-transform: uppercase;
+    }
+
+    &-label {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  &-accordion {
+    text-align: left;
+    margin-left: 8px;
+    margin-top: -16px;
+    border-width: 0 0 0 1px;
+    border-style: solid;
+    border-color: $mmk-super-light-light-grey;
+    padding: 16px 0 24px 8px;
+
+    &-desc {
+      display: flex;
+      margin-top: 8px;
+
+      div {
+        margin-left: 8px;
+        font-size: font-size('xx-small');
+      }
+    }
+  }
+
+  &-skip {
+    font-weight: bold;
+    font-size: font-size('small');
+    color: color('text', 'blue-dark');
+    line-height: 2.14;
+    letter-spacing: 2px;
+    margin-top: 16px;
+  }
+}
