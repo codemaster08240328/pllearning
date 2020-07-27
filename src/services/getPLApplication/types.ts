@@ -9,11 +9,12 @@ export interface IPLAppData {
   message: string;
   data: {
     list: {
-      appID: number;
+      appID: number | null;
       isNewApp: boolean;
       isApplicationFinished: boolean;
+      isFintechEligibility: string | null;
       applicationDetails: {
-        seqNo: number;
+        seqNo: number | null;
         addressLine1: string | null;
         addressLine2: string | null;
         state: string | null;
@@ -37,13 +38,13 @@ export interface IPLAppData {
         requiredPLAmount: string | null;
         hasObligations: string | null;
         createdOn: string | null;
-        createdBy: string;
+        createdBy: string | null;
         updatedOn: string | null;
-        updatedBy: string;
+        updatedBy: string | null;
         leadQueueCode: string | null;
         emiEligibility: string | null;
-        customerID: string;
-        applicationID: string;
+        customerID: string | null;
+        applicationID: string | null;
         matchedBank: string | null;
         errorCode: string | null;
         errorComments: string | null;
@@ -71,15 +72,15 @@ export interface IPLAppData {
         salaryCreditedBankType: string | null;
         employerType: string | null;
         callBackDateTime: string | null;
-        canCallAnyTime: number;
-        isCallRightNow: number;
-        crmProgressRank: number;
-        crmProgressStatus: string;
-        recordToSync: number;
-        isEligible: string;
+        canCallAnyTime: number | null;
+        isCallRightNow: number | null;
+        crmProgressRank: number | null;
+        crmProgressStatus: string | null;
+        recordToSync: number | null;
+        isEligible: string | null;
         lastPosition: string | null;
         mobileNumber: string | null;
-        creditScore: number;
+        creditScore: number | null;
         errCreditReportCount: number | null;
         dateofBirth: string | null;
         panNumber: string | null;
@@ -104,16 +105,16 @@ export interface IPLAppData {
         state: string | null;
         zipCode: string | null;
         addressType: string | null;
-        seqNo: number;
-        isActive: number;
+        seqNo: number | null;
+        isActive: number | null;
         source: string | null;
       }>;
       emailInformationDetails: Array<{
         emailAddress: string | null;
-        emailType: 'OFFICE' | 'PERSONAL';
+        emailType: string | null;
         source: string | null;
-        seqNo: number;
-        isActive: number;
+        seqNo: number | null;
+        isActive: number | null;
       }>;
     };
   };
