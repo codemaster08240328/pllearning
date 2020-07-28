@@ -1,32 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Dispatch, bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import { useHistory, Link } from 'react-router-dom';
-import { BackIcon } from '../../components/Icons';
-import StepFlow from '../../components/StepFlow';
+import { BackIcon } from 'components/Icons';
+import StepFlow from 'components/StepFlow';
 
-import Button from '../../components/Button';
-import { BottomModal } from '../../components/Modal';
-import Input from '../../components/Input';
-import {
-  CircledPlusIcon,
-  CircledCheckIcon,
-  CloseIcon,
-} from '../../components/Icons';
+import Button from 'components/Button';
+import { BottomModal } from 'components/Modal';
+import Input from 'components/Input';
+import { CircledPlusIcon, CircledCheckIcon, CloseIcon } from 'components/Icons';
 
-import { emailValidation } from '../../utitlity/helper';
+import { emailValidation } from 'utitlity/helper';
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication } from 'redux/actions/plApplication';
+import { usePrevious } from 'utitlity/helper';
 
-const emails = [
-  'abcdefg@gmail.com',
-  '12345678890@yahoo.com',
-  'hello@mymoneykarma.com',
-];
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
 
-const SelectEmail = () => {
-  const [emailList, setemailList] = useState(emails);
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+}
+
+type TEmailItem = {
+  seqNo: number | null;
+  emailAddress: string | null;
+  isActive: number | null;
+  emailType: string | null;
+};
+
+const SelectEmail: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+}) => {
+  const [emailList, setemailList] = useState<Array<TEmailItem>>([]);
   const [email, setEmail] = useState<string>('');
   const [openModal, setopenModal] = useState(false);
   const [newEmail, setnewEmail] = useState('');
   const [invalidEmail, setinvalidEmail] = useState(false);
   const history = useHistory();
+
+  const previousLoading = usePrevious(plApplication.loading);
+
+  useEffect(() => {
+    setemailList(
+      plApplication.data.list.emailInformationDetails.filter(
+        (email) => email.emailType === 'PERSONAL'
+      )
+    );
+  }, [plApplication]);
 
   const isDisable = () => {
     return !email;
@@ -34,7 +60,15 @@ const SelectEmail = () => {
 
   const addNewEmail = () => {
     if (emailValidation(newEmail)) {
-      setemailList([...emailList, newEmail]);
+      setemailList([
+        ...emailList,
+        {
+          emailAddress: newEmail,
+          emailType: 'PERSONAL',
+          seqNo: new Date().getTime(),
+          isActive: 0,
+        },
+      ]);
       setopenModal(false);
       setEmail(newEmail);
     } else {
@@ -57,13 +91,15 @@ const SelectEmail = () => {
           <div
             className="mmk-loan-email-select-item"
             key={index.toString()}
-            onClick={() => setEmail(item)}
+            onClick={() => setEmail(item.emailAddress || '')}
           >
-            <div className="mmk-loan-email-select-item-text">{item}</div>
+            <div className="mmk-loan-email-select-item-text">
+              {item.emailAddress}
+            </div>
 
             <CircledCheckIcon
-              color={item === email ? '#37d47e' : '#e2e2e2'}
-              checked={item === email}
+              color={item.emailAddress === email ? '#37d47e' : '#e2e2e2'}
+              checked={item.emailAddress === email}
             />
           </div>
         ))}
@@ -112,4 +148,16 @@ const SelectEmail = () => {
   );
 };
 
-export default SelectEmail;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(SelectEmail);

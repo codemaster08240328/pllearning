@@ -1,58 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Dispatch, bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import { useHistory, Link, useParams } from 'react-router-dom';
-import Button from '../../components/Button';
+import Button from 'components/Button';
 
-import Select from '../../components/Select';
-import { Modal, BottomModal } from '../../components/Modal';
-import { CloseIcon, BackIcon } from '../../components/Icons';
-import StepFlow from '../../components/StepFlow';
+import Select from 'components/Select';
+import { TOption } from 'components/Select/types';
+import { Modal, BottomModal } from 'components/Modal';
+import { CloseIcon, BackIcon } from 'components/Icons';
+import StepFlow from 'components/StepFlow';
 import { TRouterParam } from './types';
 
-import HDFCBank from '../../assets/bank/hdfc-bank-salary.png';
-import ICICIBank from '../../assets/bank/icici-bank-salary.png';
-import SBIBank from '../../assets/bank/sbi-bank-salary.png';
-import PNBBank from '../../assets/bank/punjab-bank-salary.png';
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication } from 'redux/actions/plApplication';
 
-import ErrorIconSmall from '../../assets/error.png';
-import ErrorIconMedium from '../../assets/error@2x.png';
-import ErrorIconLarge from '../../assets/error@3x.png';
+import { usePrevious } from 'utitlity/helper';
+import { fetchBankItems } from 'services/getBankList/service';
+
+import HDFCBank from 'assets/bank/hdfc-bank-salary.png';
+import ICICIBank from 'assets/bank/icici-bank-salary.png';
+import SBIBank from 'assets/bank/sbi-bank-salary.png';
+import PNBBank from 'assets/bank/punjab-bank-salary.png';
+
+import ErrorIconSmall from 'assets/error.png';
+import ErrorIconMedium from 'assets/error@2x.png';
+import ErrorIconLarge from 'assets/error@3x.png';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+}
+
+type TBankTypes = 'PREFBNK' | 'NONPREFBNK' | 'NOBNK' | string;
 
 const bankItems = [
-  { key: 'hdfc', img: HDFCBank },
-  { key: 'icici', img: ICICIBank },
-  { key: 'pnb', img: PNBBank },
-  { key: 'sbi', img: SBIBank },
+  { key: 'hdfcbank', img: HDFCBank },
+  { key: 'icicibank', img: ICICIBank },
+  { key: 'pnbbank', img: PNBBank },
+  { key: 'sbibank', img: SBIBank },
 ];
 
-const BankSalary = () => {
+const BankSalary: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+}) => {
   const [bank, setBank] = useState<string>('');
-  const [isTypeBank, setIsTypeBank] = useState<boolean>(false);
-  const [bankType, setBankType] = useState<string>('');
+  const [bankType, setBankType] = useState<TBankTypes>('PREFBNK');
+  const [bankListOptions, setbankListOptions] = useState<Array<TOption>>([]);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openAccountModal, setopenAccountModal] = useState(false);
   const { type } = useParams<TRouterParam>();
 
   const history = useHistory();
 
+  const previousLoading = usePrevious(plApplication.loading);
+
+  useEffect(() => {
+    if (previousLoading) {
+      history.push(`/apply/7/${type}`);
+    }
+
+    setBank(plApplication.data.list.applicationDetails.salaryCreditBank || '');
+    setBankType(
+      plApplication.data.list.applicationDetails.salaryCreditedBankType || ''
+    );
+  }, [plApplication]);
+
   const checkDisabled = () => {
-    return !bank && !bankType;
+    return !bank;
   };
 
   const onNext = () => {
-    console.log(bank);
-    if (bank !== 'hdfc') {
+    if (bank !== bankItems[0].key) {
       setopenAccountModal(true);
     } else {
-      history.push(`/apply/7/${type}`);
+      saveChangedApplication();
     }
   };
 
   const onYes = () => {
-    history.push(`/apply/7/${type}`);
+    // TODO: which endpoint do I need to use to answer to the question: 'Do you hav a savings account with HDFC?'
+    saveChangedApplication();
   };
 
   const onNo = () => {
-    history.push(`/apply/7/${type}`);
+    // TODO: which endpoint do I need to use to answer to the question: 'Do you hav a savings account with HDFC?'
+    saveChangedApplication();
+  };
+
+  const saveChangedApplication = () => {
+    const param: IParam = {
+      salaryCreditBank: bank || null,
+      salaryCreditedBankType: bankType || null,
+    };
+
+    savePLApplication(param);
+  };
+
+  const fetchBankList = async (value: string) => {
+    const bankLists = await fetchBankItems(value);
+
+    const bankItems: Array<TOption> = bankLists.data.map((bank) => ({
+      value: bank.bankCode || '',
+      label: bank.bankName || '',
+    }));
+
+    setbankListOptions(bankItems);
   };
 
   return (
@@ -77,7 +136,7 @@ const BankSalary = () => {
                 className={clsName}
                 onClick={() => {
                   setBank(item.key);
-                  setIsTypeBank(false);
+                  setBankType('PREFBNK');
                 }}
                 key={index.toString()}
               >
@@ -90,26 +149,27 @@ const BankSalary = () => {
         <div className="mmk-bank-salary-select">
           <div
             onClick={() => {
-              setIsTypeBank(true);
+              setBankType('NONPREFBNK');
               setBank('');
             }}
             className={
-              isTypeBank
+              bankType === 'NONPREFBNK'
                 ? 'mmk-loan-duration-item item-clicked'
                 : 'mmk-loan-duration-item'
             }
           >
             My Bank is not listed
           </div>
-          {isTypeBank && (
+          {bankType === 'NONPREFBNK' && (
             <Select
-              options={[
-                { value: 'bank1', label: 'Bank1' },
-                { value: 'bank2', label: 'Bank2' },
-                { value: 'bank3', label: 'Bank3' },
-              ]}
+              options={bankListOptions}
+              selectItem={bank ? { value: bank, label: bank } : undefined}
               placeholder="Type your bank name"
-              onSelect={(v) => setBankType(v)}
+              onSelect={(v) => {
+                setBank(v.label);
+                setBankType('NONPREFBNK');
+              }}
+              onChange={(v) => fetchBankList(v)}
             />
           )}
           <div
@@ -126,7 +186,12 @@ const BankSalary = () => {
         <div className="flex-1" />
 
         <div className="next-btn-wrapper">
-          <Button text="NEXT" disabled={checkDisabled()} onClick={onNext} />
+          <Button
+            text="NEXT"
+            disabled={checkDisabled()}
+            onClick={onNext}
+            loading={plApplication.loading}
+          />
         </div>
         {openModal && (
           <Modal>
@@ -182,4 +247,16 @@ const BankSalary = () => {
   );
 };
 
-export default BankSalary;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(BankSalary);

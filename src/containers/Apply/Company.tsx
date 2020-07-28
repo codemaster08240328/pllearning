@@ -1,35 +1,34 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Dispatch, bindActionCreators } from 'redux';
 import { useHistory, useParams, Link } from 'react-router-dom';
-import Button from '../../components/Button';
-import {
-  AlertIcon,
-  ArrowIcon,
-  CloseIcon,
-  BackIcon,
-} from '../../components/Icons';
-import Select from '../../components/Select';
-import { TOption } from '../../components/Select/types';
-import { BottomModal } from '../../components/Modal';
-import StepFlow from '../../components/StepFlow';
+import Button from 'components/Button';
+import { AlertIcon, ArrowIcon, CloseIcon, BackIcon } from 'components/Icons';
+import Select from 'components/Select';
+import { TOption } from 'components/Select/types';
+import { BottomModal } from 'components/Modal';
+import StepFlow from 'components/StepFlow';
 import { TRouterParam } from './types';
 
-import { getPLApplicationDetails } from '../../services/getPLApplication/service';
-import { IPLAppData } from '../../services/getPLApplication/types';
-import { savePLApplicationDetails } from '../../services/saveApplication/service';
-import { IParam } from '../../services/saveApplication/types';
+import { getCompanyList } from 'services/getCompanyList/service';
 
-const options: Array<TOption> = [
-  {
-    value: 'company1',
-    label: 'Company1',
-  },
-  {
-    value: 'company2',
-    label: 'Company2',
-  },
-];
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication } from 'redux/actions/plApplication';
 
-const noMatchOption = {
+import { usePrevious } from 'utitlity/helper';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+}
+
+const noMatchOption: TOption = {
   value: 'none',
   label: 'My company is not in the list',
 };
@@ -41,51 +40,62 @@ const companyTypes = [
   { type: 'LCT06', label: 'Sole Proprietorship' },
 ];
 
-const Company = () => {
-  const [company, setCompany] = useState<string | undefined>(undefined);
+const Company: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+}) => {
+  const [company, setCompany] = useState<TOption | undefined>(undefined);
   const [companyType, setCompanyType] = useState<string | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
-  const [loading, setloading] = useState(false);
-  const [plApp, setplApp] = useState<IPLAppData>();
+  const [options, setoptions] = useState<Array<TOption>>([]);
   const history = useHistory();
   const { type } = useParams<TRouterParam>();
 
+  const previousLoading = usePrevious(plApplication.loading);
+
   useEffect(() => {
-    getPLApplicationDetails().then((res) => {
-      console.log('res--->', res);
-      setplApp(res);
-      setCompany(res.data.list.applicationDetails.employerName || undefined);
-    });
-  }, []);
+    if (previousLoading) {
+      history.push(`/apply/6/${type}`);
+    }
+
+    setCompany(
+      {
+        value:
+          plApplication.data.list.applicationDetails.employerName ==
+          noMatchOption.label
+            ? 'none'
+            : plApplication.data.list.applicationDetails.employerName || '',
+        label: plApplication.data.list.applicationDetails.employerName || '',
+      } || undefined
+    );
+
+    setCompanyType(
+      plApplication.data.list.applicationDetails.organizationType || undefined
+    );
+  }, [plApplication]);
+
+  const fetchOptions = async (val: string) => {
+    const res = await getCompanyList(val);
+    const filteredOptions: Array<TOption> = res.data.map((item) => ({
+      value: item.cin || '',
+      label: item.companyName || '',
+    }));
+
+    setoptions([...filteredOptions, noMatchOption]);
+  };
 
   const onNext = () => {
-    setloading(true);
+    const param: IParam = {
+      employerName: company?.label || null,
+      organizationType: companyType || null,
+    };
 
-    if (!!plApp) {
-      let param: IParam = {
-        ...plApp.data.list.applicationDetails,
-        addressInformation: plApp.data.list.addressInformationDetails,
-        emailAddresses: plApp.data.list.emailInformationDetails,
-        businessRegistrationNames: plApp.data.list.businessRegistrationDetails,
-        isNewApplication: plApp.data.list.isNewApp,
-        businessRegistrationType: null, // TODO: should check with BE team
-        fastTrackPoint: true, // TODO: should check with BE team
-        nonPreferredSalaryCreditedBank: null, // TODO: should check with BE team
-      };
-      param.employerName = company || null;
-      param.organizationType = companyType || null;
-
-      savePLApplicationDetails(param).then((res) => {
-        console.log(res);
-        setloading(false);
-        history.push(`/apply/6/${type}`);
-      });
-    }
+    savePLApplication(param);
   };
 
   const checkDisabled = () => {
     let disabled = !company;
-    disabled = disabled || company === 'none';
+    disabled = disabled || company?.value === 'none';
     disabled = disabled && !companyType;
 
     return disabled;
@@ -103,15 +113,15 @@ const Company = () => {
           <Select
             options={options}
             placeholder="Type your company name"
-            noMatch={noMatchOption}
-            onSelect={(value) => {
-              setCompany(value);
+            onSelect={(item) => {
+              setCompany(item);
               setCompanyType(undefined);
             }}
-            value={company}
+            onChange={(value) => fetchOptions(value)}
+            selectItem={company}
           />
         </div>
-        {company === 'none' && (
+        {company && company.value === 'none' && (
           <div className="mmk-company-warn mt-8">
             <AlertIcon color={'#f9da4b'} />
             <div className="mmk-company-warn-text">
@@ -120,13 +130,18 @@ const Company = () => {
             </div>
           </div>
         )}
-        {company === 'none' && (
+        {company && company.value === 'none' && (
           <div
             className="mmk-company-type mt-32"
             onClick={() => setModalOpen(!modalOpen)}
           >
             <div>
-              <span className="mmk-company-type-value">{companyType}</span>
+              {!!companyType && (
+                <span className="mmk-company-type-value">
+                  {companyTypes.filter((item) => item.type === companyType)[0]
+                    ?.label || ''}
+                </span>
+              )}
               {!companyType && (
                 <span className="mmk-company-type-placeholder">
                   Select type of your company
@@ -144,7 +159,7 @@ const Company = () => {
             text="NEXT"
             disabled={checkDisabled()}
             onClick={onNext}
-            loading={loading}
+            loading={plApplication.loading}
           />
         </div>
         {modalOpen && (
@@ -162,7 +177,7 @@ const Company = () => {
               {companyTypes.map((item, index) => (
                 <div
                   onClick={() => {
-                    setCompanyType(item.label);
+                    setCompanyType(item.type);
                     setTimeout(() => setModalOpen(false), 100);
                   }}
                   className="mmk-loan-duration-item"
@@ -179,4 +194,16 @@ const Company = () => {
   );
 };
 
-export default Company;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(Company);

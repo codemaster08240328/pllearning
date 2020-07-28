@@ -1,8 +1,8 @@
 import React from 'react';
 
-import { MenuIcon } from '../../components/Icons';
-import Footer from '../../components/Footer';
-import Button from '../../components/Button';
+import { MenuIcon } from 'components/Icons';
+import Footer from 'components/Footer';
+import Button from 'components/Button';
 
 import './Sorry.scss';
 

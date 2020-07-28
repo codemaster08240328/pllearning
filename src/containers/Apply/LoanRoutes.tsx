@@ -8,9 +8,9 @@ import {
   Link,
 } from 'react-router-dom';
 
-import { getStepFromPath } from '../../utitlity/helper';
-import { BackIcon } from '../../components/Icons';
-import StepFlow from '../../components/StepFlow';
+import { getStepFromPath } from 'utitlity/helper';
+import { BackIcon } from 'components/Icons';
+import StepFlow from 'components/StepFlow';
 
 import Dependants from './Dependants';
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import Button from '../../components/Button';
+import Button from 'components/Button';
 
-import SmallFasterImg from '../../assets/faster.png';
-import MediumFasterImg from '../../assets/faster@2x.png';
-import LargeFasterImg from '../../assets/faster@3x.png';
+import SmallFasterImg from 'assets/faster.png';
+import MediumFasterImg from 'assets/faster@2x.png';
+import LargeFasterImg from 'assets/faster@3x.png';
 
 import './GreatNews.scss';
 

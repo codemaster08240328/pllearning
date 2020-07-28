@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { IPLAppData, IParam } from './types';
 
 export const getPLApplicationDetails = (): Promise<IPLAppData> => {
@@ -9,5 +9,7 @@ export const getPLApplicationDetails = (): Promise<IPLAppData> => {
     campaignCode: localStorage.getItem('campaign-code') || '',
   };
 
-  return axios.post(endpoint, param).then((res) => res.data);
+  return axios
+    .post(endpoint, param)
+    .then((res: AxiosResponse<IPLAppData>) => res.data);
 };

@@ -1,54 +1,56 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Dispatch, bindActionCreators } from 'redux';
 import { useHistory, Link } from 'react-router-dom';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
-import { CurrencyIcon, BackIcon } from '../../components/Icons';
-import StepFlow from '../../components/StepFlow';
+import Button from 'components/Button';
+import Input from 'components/Input';
+import { CurrencyIcon, BackIcon } from 'components/Icons';
+import StepFlow from 'components/StepFlow';
 
-import { getPLApplicationDetails } from '../../services/getPLApplication/service';
-import { IPLAppData } from '../../services/getPLApplication/types';
-import { savePLApplicationDetails } from '../../services/saveApplication/service';
-import { IParam } from '../../services/saveApplication/types';
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication } from 'redux/actions/plApplication';
 
-const Salary = () => {
+import { usePrevious } from 'utitlity/helper';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+}
+
+const Salary: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+}) => {
   const [salary, setSalary] = useState<string | undefined>(undefined);
-  const [loading, setloading] = useState(false);
-  const [plApp, setplApp] = useState<IPLAppData>();
   const history = useHistory();
+  const previousLoading = usePrevious(plApplication.loading);
 
   useEffect(() => {
-    getPLApplicationDetails().then((res) => {
-      console.log('res--->', res);
-      setplApp(res);
-      setSalary(res.data.list.applicationDetails.netMonthlySalary || undefined);
-    });
-  }, []);
+    if (previousLoading) {
+      if (parseInt(salary || '0') >= 30000) {
+        history.push('/apply/5/long');
+      } else {
+        history.push('/apply/5/short');
+      }
+    }
+
+    setSalary(
+      plApplication.data.list.applicationDetails.netMonthlySalary || undefined
+    );
+  }, [plApplication]);
 
   const onNext = () => {
-    setloading(true);
-    if (!!plApp) {
-      let param: IParam = {
-        ...plApp.data.list.applicationDetails,
-        addressInformation: plApp.data.list.addressInformationDetails,
-        emailAddresses: plApp.data.list.emailInformationDetails,
-        businessRegistrationNames: plApp.data.list.businessRegistrationDetails,
-        isNewApplication: plApp.data.list.isNewApp,
-        businessRegistrationType: null, // TODO: should check with BE team
-        fastTrackPoint: true, // TODO: should check with BE team
-        nonPreferredSalaryCreditedBank: null, // TODO: should check with BE team
-      };
-      param.netMonthlySalary = salary || null;
+    const param: IParam = {
+      netMonthlySalary: salary || null,
+    };
 
-      savePLApplicationDetails(param).then((res) => {
-        console.log(res);
-        setloading(false);
-        if (parseInt(salary || '0') >= 30000) {
-          history.push('/apply/5/long');
-        } else {
-          history.push('/apply/5/short');
-        }
-      });
-    }
+    savePLApplication(param);
   };
 
   return (
@@ -76,7 +78,7 @@ const Salary = () => {
             text="NEXT"
             disabled={!salary}
             onClick={onNext}
-            loading={loading}
+            loading={plApplication.loading}
           />
         </div>
       </div>
@@ -84,4 +86,16 @@ const Salary = () => {
   );
 };
 
-export default Salary;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(Salary);

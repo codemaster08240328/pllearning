@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { MenuIcon } from '../../components/Icons';
-import ApplicationSavedSmallImg from '../../assets/document-saved.png';
-import ApplicationSavedMediumImg from '../../assets/document-saved@2x.png';
-import ApplicationSavedLargeImg from '../../assets/document-saved@3x.png';
+import { MenuIcon } from 'components/Icons';
+import ApplicationSavedSmallImg from 'assets/document-saved.png';
+import ApplicationSavedMediumImg from 'assets/document-saved@2x.png';
+import ApplicationSavedLargeImg from 'assets/document-saved@3x.png';
+import Footer from 'components/Footer';
 
 import './ApplicationSaved.scss';
-import Footer from '../../components/Footer';
 
 const ApplicationSaved = () => {
   return (

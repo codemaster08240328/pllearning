@@ -3,20 +3,20 @@ import { Dispatch, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 
-import HomePage from './containers/Home/HomePage';
-import ApplyRouter from './containers/Apply/ApplyRoutes';
-import Analyze from './containers/Apply/Analyze';
-import HardWork from './containers/HardWork/HardWork';
-import ApplicationSaved from './containers/ApplicationSaved/ApplicationSaved';
-import ApplicationSummary from './containers/ApplicationSummary/ApplicationSummary';
-import GreatNews from './containers/Applications/GreatNews';
-import Sorry from './containers/Applications/Sorry';
+import HomePage from 'containers/Home/HomePage';
+import ApplyRouter from 'containers/Apply/ApplyRoutes';
+import Analyze from 'containers/Apply/Analyze';
+import HardWork from 'containers/HardWork/HardWork';
+import ApplicationSaved from 'containers/ApplicationSaved/ApplicationSaved';
+import ApplicationSummary from 'containers/ApplicationSummary/ApplicationSummary';
+import GreatNews from 'containers/Applications/GreatNews';
+import Sorry from 'containers/Applications/Sorry';
 
-import { IPLAppState } from './redux/reducers';
-import { IPLAppData } from './services/getPLApplication/types';
-import { ILoading } from './redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { IPLAppData } from 'services/getPLApplication/types';
+import { ILoading } from 'redux/reducers/types';
 
-import { fetchApplication } from './redux/actions/plApplication';
+import { fetchApplication } from 'redux/actions/plApplication';
 
 interface StateProps {
   plApplication: IPLAppData & ILoading;

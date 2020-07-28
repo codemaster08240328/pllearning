@@ -1,5 +1,5 @@
 import * as actions from '../actions/actions';
-import { IPLAppData } from '../../services/getPLApplication/types';
+import { IPLAppData } from 'services/getPLApplication/types';
 import { IPLAppAction, ILoading } from './types';
 
 export const initAppData = {

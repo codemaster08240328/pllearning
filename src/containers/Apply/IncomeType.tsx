@@ -1,23 +1,36 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Dispatch, bindActionCreators } from 'redux';
 import { useHistory, Link } from 'react-router-dom';
 import {
   SuitcaseIcon,
   UserSmileIcon,
   BackIcon,
   CloseIcon,
-} from '../../components/Icons';
-import StepFlow from '../../components/StepFlow';
-import { Modal } from '../../components/Modal';
-import Button from '../../components/Button';
+} from 'components/Icons';
+import StepFlow from 'components/StepFlow';
+import { Modal } from 'components/Modal';
+import Button from 'components/Button';
 
-import { getPLApplicationDetails } from '../../services/getPLApplication/service';
-import { IPLAppData } from '../../services/getPLApplication/types';
-import { savePLApplicationDetails } from '../../services/saveApplication/service';
-import { IParam } from '../../services/saveApplication/types';
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication } from 'redux/actions/plApplication';
 
-import ErrorIconSmall from '../../assets/error.png';
-import ErrorIconMedium from '../../assets/error@2x.png';
-import ErrorIconLarge from '../../assets/error@3x.png';
+import { usePrevious } from 'utitlity/helper';
+
+import ErrorIconSmall from 'assets/error.png';
+import ErrorIconMedium from 'assets/error@2x.png';
+import ErrorIconLarge from 'assets/error@3x.png';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+}
 
 type TSelectItem = {
   Icon: React.FC<{ color?: string }>;
@@ -38,19 +51,25 @@ const items = [
   },
 ];
 
-const IncomeType = () => {
+const IncomeType: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+}) => {
   const [type, setType] = useState<number | undefined>(undefined);
   const [openModal, setopenModal] = useState(false);
-  const [plApp, setplApp] = useState<IPLAppData>();
   const history = useHistory();
 
+  const previousLoading = usePrevious(plApplication.loading);
+
   useEffect(() => {
-    getPLApplicationDetails().then((res) => {
-      console.log('res--->', res);
-      setplApp(res);
-      setType(res.data.list.applicationDetails.employmentType || undefined);
-    });
-  }, []);
+    if (previousLoading) {
+      history.push('/apply/4');
+    }
+
+    setType(
+      plApplication.data.list.applicationDetails.employmentType || undefined
+    );
+  }, [plApplication]);
 
   const selectType = (type: number) => {
     setType(type);
@@ -58,25 +77,11 @@ const IncomeType = () => {
     if (type === 0) {
       setopenModal(true);
     } else {
-      if (!!plApp) {
-        let param: IParam = {
-          ...plApp.data.list.applicationDetails,
-          addressInformation: plApp.data.list.addressInformationDetails,
-          emailAddresses: plApp.data.list.emailInformationDetails,
-          businessRegistrationNames:
-            plApp.data.list.businessRegistrationDetails,
-          isNewApplication: plApp.data.list.isNewApp,
-          businessRegistrationType: null, // TODO: should check with BE team
-          fastTrackPoint: true, // TODO: should check with BE team
-          nonPreferredSalaryCreditedBank: null, // TODO: should check with BE team
-        };
-        param.employmentType = type || null;
+      const param: IParam = {
+        employmentType: type,
+      };
 
-        savePLApplicationDetails(param).then((res) => {
-          console.log(res);
-          history.push('/apply/4');
-        });
-      }
+      savePLApplication(param);
     }
   };
 
@@ -156,4 +161,16 @@ const IncomeType = () => {
   );
 };
 
-export default IncomeType;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(IncomeType);

@@ -1,37 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Dispatch, bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import { useHistory, Link, useParams } from 'react-router-dom';
-import StepFlow from '../../components/StepFlow';
+import StepFlow from 'components/StepFlow';
 import { TRouterParam } from './types';
-import { BackIcon } from '../../components/Icons';
+import { BackIcon } from 'components/Icons';
+
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication } from 'redux/actions/plApplication';
+import { usePrevious } from 'utitlity/helper';
+import Loading from 'components/Loading';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+}
 
 type TSelectItem = {
   value: string;
+  label: string;
 };
 
 const years = [
-  'Less than 1 year',
-  '1 year',
-  '2 years',
-  '3 years',
-  'More than 3 years',
+  {
+    value: 'PLCADD01',
+    label: 'Less than 1 year',
+  },
+  {
+    value: 'PLCADD02',
+    label: '1 year',
+  },
+  {
+    value: 'PLCADD03',
+    label: '2 years',
+  },
+  {
+    value: 'PLCADD04',
+    label: '3 years',
+  },
+  {
+    value: 'PLCADD05',
+    label: 'More than 3 years',
+  },
 ];
 
-const CityDuration = () => {
+const CityDuration: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+}) => {
   const [year, setYear] = useState<string | undefined>(undefined);
   const history = useHistory();
   const { type } = useParams<TRouterParam>();
 
+  const previousLoading = usePrevious(plApplication.loading);
+
+  useEffect(() => {
+    if (previousLoading) {
+      if (type === 'short') {
+        history.push(`/apply/analyze/${type}`);
+      } else {
+        history.push(`/apply/10`);
+      }
+    }
+
+    setYear(
+      plApplication.data.list.applicationDetails.yrsAtCurrentCity || undefined
+    );
+  }, [plApplication]);
+
   const onNext = (value: string) => {
     setYear(value);
 
-    if (type === 'short') {
-      setTimeout(() => history.push(`/apply/analyze/${type}`), 1000);
-    } else {
-      setTimeout(() => history.push(`/apply/10`), 1000);
-    }
+    const param: IParam = {
+      yrsAtCurrentCity: value,
+    };
+
+    savePLApplication(param);
   };
 
-  const SelectItem: React.FC<TSelectItem> = ({ value }) => {
+  const SelectItem: React.FC<TSelectItem> = ({ value, label }) => {
     let className = 'mmk-loan-duration-item ';
     if (year === value) {
       className += 'item-clicked ';
@@ -39,7 +92,7 @@ const CityDuration = () => {
 
     return (
       <div className={className} onClick={() => onNext(value)}>
-        {value}
+        {label}
       </div>
     );
   };
@@ -55,12 +108,29 @@ const CityDuration = () => {
 
         <div className="mmk-loan-duration">
           {years.map((item) => (
-            <SelectItem value={item} key={item} />
+            <SelectItem
+              value={item.value}
+              key={item.value}
+              label={item.label}
+            />
           ))}
         </div>
       </div>
+      {plApplication.loading && <Loading />}
     </>
   );
 };
 
-export default CityDuration;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(CityDuration);

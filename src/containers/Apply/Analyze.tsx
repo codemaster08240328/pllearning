@@ -2,7 +2,7 @@ import React from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { TRouterParam } from './types';
 import Lottie from 'react-lottie';
-import animationData from '../../assets/loading-analyzing.json';
+import animationData from 'assets/loading-analyzing.json';
 import './analyze.scss';
 
 const Analyze = () => {

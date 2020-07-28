@@ -1,56 +1,51 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Dispatch, bindActionCreators } from 'redux';
 import { useHistory, Link } from 'react-router-dom';
-import Button from '../../components/Button';
-import Input from '../../components/Input';
-import { CurrencyIcon, BackIcon } from '../../components/Icons';
-import StepFlow from '../../components/StepFlow';
+import Button from 'components/Button';
+import Input from 'components/Input';
+import { CurrencyIcon, BackIcon } from 'components/Icons';
+import StepFlow from 'components/StepFlow';
 
-import { getPLApplicationDetails } from '../../services/getPLApplication/service';
-import { IPLAppData } from '../../services/getPLApplication/types';
-import { savePLApplicationDetails } from '../../services/saveApplication/service';
-import { IParam } from '../../services/saveApplication/types';
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication } from 'redux/actions/plApplication';
 
-const LoanAmount = () => {
+import { usePrevious } from 'utitlity/helper';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+}
+
+const LoanAmount: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+}) => {
   const [loanamt, setLoanamt] = useState<string | undefined>(undefined);
-  const [plApp, setplApp] = useState<IPLAppData>();
-  const [loading, setLoading] = useState<boolean>(false);
   const history = useHistory();
+  const previousLoading = usePrevious(plApplication.loading);
 
   useEffect(() => {
-    getPLApplicationDetails().then((res) => {
-      console.log('res--->', res);
-      setplApp(res);
-      setLoanamt(
-        res.data.list.applicationDetails.requiredPLAmount || undefined
-      );
-    });
-  }, []);
+    if (previousLoading) {
+      history.push('/apply/2');
+    }
+    setLoanamt(
+      plApplication.data.list.applicationDetails.requiredPLAmount || undefined
+    );
+  }, [plApplication]);
 
   const onNext = () => {
-    setLoading(true);
+    const param: IParam = {
+      requiredPLAmount: loanamt || null,
+    };
 
-    if (!!plApp) {
-      let param: IParam = {
-        ...plApp.data.list.applicationDetails,
-        addressInformation: plApp.data.list.addressInformationDetails,
-        emailAddresses: plApp.data.list.emailInformationDetails,
-        businessRegistrationNames: plApp.data.list.businessRegistrationDetails,
-        isNewApplication: plApp.data.list.isNewApp,
-        businessRegistrationType: null, // TODO: should check with BE team
-        fastTrackPoint: true, // TODO: should check with BE team
-        nonPreferredSalaryCreditedBank: null, // TODO: should check with BE team
-      };
-      param.requiredPLAmount = loanamt || null;
-
-      savePLApplicationDetails(param).then((res) => {
-        console.log(res);
-        setLoading(false);
-
-        history.push('/apply/2');
-      });
-    } else {
-      setLoading(false);
-    }
+    savePLApplication(param);
   };
 
   return (
@@ -79,7 +74,7 @@ const LoanAmount = () => {
             text="NEXT"
             disabled={!loanamt}
             onClick={onNext}
-            loading={loading}
+            loading={plApplication.loading}
           />
         </div>
       </div>
@@ -87,4 +82,16 @@ const LoanAmount = () => {
   );
 };
 
-export default LoanAmount;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(LoanAmount);

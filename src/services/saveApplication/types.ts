@@ -85,6 +85,7 @@ export interface IParam {
     zipCode: string | null;
     isActive: number | null;
     addressType: string | null;
+    source: string | null;
   }>;
   emailAddresses?: Array<{
     seqNo: number | null;

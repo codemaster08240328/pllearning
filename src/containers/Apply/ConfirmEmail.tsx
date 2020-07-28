@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useHistory, Link } from 'react-router-dom';
-import { BackIcon } from '../../components/Icons';
-import StepFlow from '../../components/StepFlow';
+import { BackIcon } from 'components/Icons';
+import StepFlow from 'components/StepFlow';
 
-import Button from '../../components/Button';
-import Input from '../../components/Input';
-import { RunIcon } from '../../components/Icons';
+import Button from 'components/Button';
+import Input from 'components/Input';
+import { RunIcon } from 'components/Icons';
 
-import { emailValidation } from '../../utitlity/helper';
+import { emailValidation } from 'utitlity/helper';
 
 const ConfirmEmail = () => {
   const history = useHistory();

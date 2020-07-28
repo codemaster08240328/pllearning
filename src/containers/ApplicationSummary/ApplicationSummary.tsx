@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-import Table from '../../components/Table';
-import { TFieldItem, TItem } from '../../components/Table/types';
-import Button from '../../components/Button';
-import { BackIcon, CheckGreyIcon } from '../../components/Icons';
+import Table from 'components/Table';
+import { TFieldItem, TItem } from 'components/Table/types';
+import Button from 'components/Button';
+import { BackIcon, CheckGreyIcon } from 'components/Icons';
 
 import './ApplicationSummary.scss';
 

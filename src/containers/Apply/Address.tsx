@@ -1,24 +1,38 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Dispatch, bindActionCreators } from 'redux';
 import { useHistory, Link, useParams } from 'react-router-dom';
-import Button from '../../components/Button';
-import { BottomModal } from '../../components/Modal';
-import StepFlow from '../../components/StepFlow';
+import Button from 'components/Button';
+import { BottomModal } from 'components/Modal';
+import StepFlow from 'components/StepFlow';
 import {
   CloseIcon,
   ArrowIcon,
   CircledCheckIcon,
   CircledPlusIcon,
   BackIcon,
-} from '../../components/Icons';
-import Input from '../../components/Input';
-import { pinCodeValidation } from '../../utitlity/helper';
+} from 'components/Icons';
+import Input from 'components/Input';
+import { pinCodeValidation } from 'utitlity/helper';
 
-import { getPLApplicationDetails } from '../../services/getPLApplication/service';
-import { IPLAppData } from '../../services/getPLApplication/types';
-import { savePLApplicationDetails } from '../../services/saveApplication/service';
-import { IParam } from '../../services/saveApplication/types';
-
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { saveApplication, addAddress } from 'redux/actions/plApplication';
 import { TRouterParam } from './types';
+import { getPINCodeDetail } from 'services/getPINCodeDetails/service';
+
+import { usePrevious } from 'utitlity/helper';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  savePLApplication: (param: IParam) => void;
+  addPLAddress: (param: IParam) => void;
+}
 
 const INF = Math.pow(10, 1000);
 
@@ -28,9 +42,9 @@ type TAddressDetail = {
   addressLine1: string | null;
   addressLine2: string | null;
   zipCode: string | null;
-  seqNo: number;
+  seqNo: number | null;
   addressType: string | null;
-  isActive: number;
+  isActive: number | null;
   source: string | null;
 };
 
@@ -61,7 +75,11 @@ const getPINCodeList = (addressList: Array<TAddressDetail>) => {
   return res.map((item) => item.zipCode);
 };
 
-const Address = () => {
+const Address: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  savePLApplication,
+  addPLAddress,
+}) => {
   const [openModal, setOpenModal] = useState<boolean>(true);
   const [pin, setPin] = useState<string | null>('');
   const [pinInput, setPinInput] = useState<string | null>('');
@@ -75,48 +93,54 @@ const Address = () => {
     isActive: 0,
     source: '',
     seqNo: 0,
-    addressType: '',
+    addressType: 'RESIDENCE',
   });
   const [openAddressDetail, setOpenAddressDetail] = useState<boolean>(false);
   const [selectedAddress, setSelectedAddress] = useState<number>(INF);
   const [validPin, setvalidPin] = useState(true);
+  const [pinFound, setpinFound] = useState(true);
   const [openNewAddModal, setopenNewAddModal] = useState(false);
   const [flat, setflat] = useState('');
   const [street, setstreet] = useState('');
-  const [plApp, setplApp] = useState<IPLAppData>();
   const [pinCodeList, setpinCodeList] = useState<Array<string | null>>([]);
   const [addressList, setaddressList] = useState<Array<TAddressDetail>>([]);
-  const [loading, setloading] = useState(false);
+
+  const [city, setcity] = useState<string>('');
+  const [state, setstate] = useState<string>('');
 
   const history = useHistory();
   const { type } = useParams<TRouterParam>();
+  const previousLoading = usePrevious(plApplication.loading);
 
   useEffect(() => {
-    getPLApplicationDetails().then((res) => {
-      console.log('res--->', res);
-      setplApp(res);
-      setPin(res.data.list.applicationDetails.zipCode || '');
-      setPinInput(res.data.list.applicationDetails.zipCode || '');
-      setpinCodeList(getPINCodeList(res.data.list.addressInformationDetails));
+    if (previousLoading) {
+      history.push(`/apply/8/${type}`);
+    }
 
-      if (!!res.data.list.applicationDetails.zipCode) {
-        setOpenModal(false);
-        setaddressList(
-          res.data.list.addressInformationDetails.filter(
-            (address) =>
-              address.zipCode === res.data.list.applicationDetails.zipCode
-          ) || []
-        );
-      }
-    });
-  }, []);
+    setPin(plApplication.data.list.applicationDetails.zipCode || '');
+    setPinInput(plApplication.data.list.applicationDetails.zipCode || '');
+    setpinCodeList(
+      getPINCodeList(plApplication.data.list.addressInformationDetails)
+    );
+
+    if (!!plApplication.data.list.applicationDetails.zipCode) {
+      setOpenModal(false);
+      setaddressList(
+        plApplication.data.list.addressInformationDetails.filter(
+          (address) =>
+            address.zipCode ===
+            plApplication.data.list.applicationDetails.zipCode
+        ) || []
+      );
+    }
+  }, [plApplication]);
 
   const getAddressInfoFromPIN = (
     pin: string
   ): {
     [key: string]: string;
   } => {
-    const address = plApp?.data.list.addressInformationDetails.filter(
+    const address = plApplication?.data.list.addressInformationDetails.filter(
       (address) => address.zipCode === pin
     )[0];
 
@@ -129,12 +153,32 @@ const Address = () => {
     };
   };
 
+  const enterPinCode = async (value: string) => {
+    if (value.length > 6) return;
+
+    setvalidPin(true);
+    setOpenAddressDetail(true);
+    setPin(value);
+
+    if (value.length === 6) {
+      const res = await getPINCodeDetail(value);
+      if (res.error) {
+        setpinFound(false);
+        return;
+      }
+      setpinFound(true);
+      setcity(res.data.city || '');
+      setstate(res.data.state || '');
+    }
+  };
+
   const onSelectPin = (item: string | null) => {
     console.log(item);
     setPinInput(item);
     setPin(item);
+
     setaddressList(
-      plApp?.data.list.addressInformationDetails.filter(
+      plApplication.data.list.addressInformationDetails.filter(
         (address) => address.zipCode === item
       ) || []
     );
@@ -158,51 +202,52 @@ const Address = () => {
   };
 
   const onNext = () => {
-    setloading(true);
+    let param: IParam = {
+      zipCode: pin,
+    };
 
-    if (pinCodeValidation(pin)) {
-      if (!!plApp) {
-        let param: IParam = {
-          ...plApp.data.list.applicationDetails,
-          addressInformation: plApp.data.list.addressInformationDetails,
-          emailAddresses: plApp.data.list.emailInformationDetails,
-          businessRegistrationNames:
-            plApp.data.list.businessRegistrationDetails,
-          isNewApplication: plApp.data.list.isNewApp,
-          businessRegistrationType: null, // TODO: should check with BE team
-          fastTrackPoint: true, // TODO: should check with BE team
-          nonPreferredSalaryCreditedBank: null, // TODO: should check with BE team
-        };
-        param.zipCode = pin;
-
-        if (selectedAddress !== INF) {
-          param.addressLine1 = plApp.data.list.addressInformationDetails.filter(
-            (address) => address.seqNo === selectedAddress
-          )[0].addressLine1;
-          param.addressLine2 = plApp.data.list.addressInformationDetails.filter(
-            (address) => address.seqNo === selectedAddress
-          )[0].addressLine2;
-          param.city = plApp.data.list.addressInformationDetails.filter(
-            (address) => address.seqNo === selectedAddress
-          )[0].city;
-          param.state = plApp.data.list.addressInformationDetails.filter(
-            (address) => address.seqNo === selectedAddress
-          )[0].state;
-        } else {
-          param.addressLine1 = flat;
-          param.addressLine2 = street;
-          param.city = address.city;
-          param.state = address.state;
-        }
-
-        savePLApplicationDetails(param).then((res) => {
-          console.log(res);
-          history.push(`/apply/8/${type}`);
-        });
-      }
-    } else {
+    if (!pinCodeValidation(pin)) {
       setvalidPin(false);
+      return;
     }
+
+    if (selectedAddress !== INF) {
+      param.addressLine1 = addressList.filter(
+        (address) => address.seqNo === selectedAddress
+      )[0].addressLine1;
+      param.addressLine2 = addressList.filter(
+        (address) => address.seqNo === selectedAddress
+      )[0].addressLine2;
+      param.city = addressList.filter(
+        (address) => address.seqNo === selectedAddress
+      )[0].city;
+      param.state = addressList.filter(
+        (address) => address.seqNo === selectedAddress
+      )[0].state;
+    } else {
+      console.log(city);
+      param.addressLine1 = flat;
+      param.addressLine2 = street;
+      param.city = city;
+      param.state = state;
+
+      param.addressInformation = [
+        {
+          seqNo: new Date().getTime(),
+          city: city,
+          state: state,
+          addressLine1: flat,
+          addressLine2: street,
+          addressType: 'RESIDENCE',
+          zipCode: pin,
+          isActive: 0,
+          source: 'CUSTINPUT',
+        },
+      ];
+      addPLAddress(param);
+    }
+
+    savePLApplication(param);
   };
 
   const checkDisabled = () => {
@@ -255,19 +300,16 @@ const Address = () => {
             </div>
             <div>
               <Input
-                onChange={(v) => {
-                  setPin(v);
-                  setvalidPin(true);
-                  setOpenAddressDetail(true);
-                }}
+                onChange={enterPinCode}
                 placeholder="Enter your 6 digit PIN code"
+                value={pin || undefined}
                 type="number"
                 error={!validPin}
               />
             </div>
           </>
         )}
-        {openAddressDetail && (
+        {openAddressDetail && pinFound && (
           <>
             <div
               className="mt-16 mb-8"
@@ -279,26 +321,28 @@ const Address = () => {
               <div className="mb-16" key={index.toString()}>
                 <Input
                   value={
-                    index > 1
-                      ? getAddressInfoFromPIN(pin || '')[item.key]
+                    index === 0
+                      ? flat
                       : index === 1
                       ? street
-                      : flat
+                      : index === 2
+                      ? city
+                      : state
                   }
                   disabled={index > 1}
                   placeholder={item.placeholder}
                   onChange={(value) => {
                     if (index === 0) {
                       setflat(value);
-                    } else if (index === 1) {
+                    } else {
                       setstreet(value);
                     }
                     setAddress({
-                      city: getAddressInfoFromPIN(pin || '').city,
-                      state: getAddressInfoFromPIN(pin || '').state,
-                      zipCode: getAddressInfoFromPIN(pin || '').zipCode,
-                      addressType: getAddressInfoFromPIN(pin || '').addressType,
-                      seqNo: 0,
+                      city: city,
+                      state: state,
+                      zipCode: pin,
+                      addressType: 'RESIDENCE',
+                      seqNo: new Date().getTime(),
                       addressLine1: index === 0 ? value : flat,
                       addressLine2: index === 1 ? value : street,
                       source: 'CUSTINPUT',
@@ -310,7 +354,11 @@ const Address = () => {
             ))}
           </>
         )}
-        {pinInput && !enterPin && (
+
+        {openAddressDetail && !pinFound && (
+          <div className="pin-notfound">Pincode not found</div>
+        )}
+        {!!pinInput && !enterPin && (
           <>
             <div className="mt-24" style={{ width: '100%', textAlign: 'left' }}>
               <label>Select your current address</label>
@@ -319,7 +367,7 @@ const Address = () => {
               <div
                 className="mmk-address-item"
                 key={index.toString()}
-                onClick={() => setSelectedAddress(address.seqNo)}
+                onClick={() => setSelectedAddress(address.seqNo || INF)}
               >
                 <div className="mmk-address-item-text">{`${address.addressLine1}, ${address.addressLine2}, ${address.city}, ${address.state}, ${address.zipCode}`}</div>
                 <CircledCheckIcon
@@ -345,7 +393,7 @@ const Address = () => {
             text="NEXT"
             disabled={checkDisabled()}
             onClick={onNext}
-            loading={loading}
+            loading={plApplication.loading}
           />
         </div>
         {openModal && (
@@ -369,6 +417,7 @@ const Address = () => {
               ))}
               <div
                 onClick={() => {
+                  setPin(null);
                   setEnterPin(true);
                   setPinInput('Add new PIN code');
                   setSelectedAddress(INF);
@@ -416,7 +465,7 @@ const Address = () => {
                     {
                       addressLine1: flat,
                       addressLine2: street,
-                      seqNo: 0,
+                      seqNo: new Date().getTime(),
                       city: getAddressInfoFromPIN(pin || '').city || '',
                       state: getAddressInfoFromPIN(pin || '').state || '',
                       zipCode: getAddressInfoFromPIN(pin || '').zipCode || '',
@@ -438,4 +487,17 @@ const Address = () => {
   );
 };
 
-export default Address;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      savePLApplication: (param) => saveApplication(param),
+      addPLAddress: (param) => addAddress(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(Address);

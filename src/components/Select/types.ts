@@ -6,8 +6,8 @@ export type TOption = {
 export interface IProps {
   options: Array<TOption>;
   placeholder?: string;
-  value?: string;
+  selectItem?: TOption;
   label?: string;
-  noMatch?: TOption;
-  onSelect?: (value: string) => void;
+  onSelect?: (item: TOption) => void;
+  onChange?: (value: string) => void;
 }

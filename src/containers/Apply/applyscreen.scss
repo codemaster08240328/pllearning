@@ -257,3 +257,11 @@
   margin-top: 24px;
   margin-bottom: 32px;
 }
+
+.pin-notfound {
+  width: 100%;
+  text-align: left;
+  font-size: font-size('small');
+  color: $mmk-red;
+  margin-top: 8px;
+}
