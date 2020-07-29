@@ -2,7 +2,7 @@ import axios, { AxiosResponse } from 'axios';
 import { IPLAppData, IParam } from './types';
 
 export const getPLApplicationDetails = (): Promise<IPLAppData> => {
-  const endpoint = '/personalLoan/getPersonalLoanRequest';
+  const endpoint = '/plApp/getPersonalLoanRequest';
 
   const param: IParam = {
     customerID: parseInt(localStorage.getItem('user-id') || '0'),

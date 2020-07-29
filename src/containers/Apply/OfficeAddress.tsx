@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Dispatch, bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import { useHistory, Link } from 'react-router-dom';
 import { BackIcon } from 'components/Icons';
 import StepFlow from 'components/StepFlow';
@@ -7,6 +9,22 @@ import Button from 'components/Button';
 import Input from 'components/Input';
 import { getPINCodeDetail } from 'services/getPINCodeDetails/service';
 import { pinCodeValidation } from 'utitlity/helper';
+
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { addAddress } from 'redux/actions/plApplication';
+import { usePrevious } from 'utitlity/helper';
+import { platform } from 'os';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  addPLAddress: (param: IParam) => void;
+}
 
 type TAddressDetail = { [key: string]: string | number | null };
 
@@ -29,7 +47,10 @@ const addressDetailItems = [
   },
 ];
 
-const OfficeAddress = () => {
+const OfficeAddress: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  addPLAddress,
+}) => {
   const [address, setAddress] = useState<TAddressDetail>({
     addressLine1: null,
     addressLine2: null,
@@ -45,7 +66,37 @@ const OfficeAddress = () => {
   const [pinFound, setpinFound] = useState(true);
   const [validPin, setvalidPin] = useState(true);
 
+  const previousLoading = usePrevious(plApplication.loading);
   const history = useHistory();
+
+  useEffect(() => {
+    if (previousLoading) {
+      history.push('/apply/15/long');
+    }
+
+    setPin(
+      plApplication.data.list.addressInformationDetails.filter(
+        (item) => item.addressType === 'OFFICE' && item.isActive === 1
+      )[0]?.zipCode || ''
+    );
+
+    setAddress(
+      plApplication.data.list.addressInformationDetails.filter(
+        (item) => item.addressType === 'OFFICE' && item.isActive === 1
+      )[0] || {
+        addressLine1: null,
+        addressLine2: null,
+        city: null,
+        state: null,
+        seqNo: null,
+        addressType: 'OFFICE',
+        isActive: null,
+        source: null,
+        zipCode: null,
+      }
+    );
+  }, [plApplication]);
+
   const isDisable = () => {
     return !(
       address.addressLine2 &&
@@ -58,7 +109,30 @@ const OfficeAddress = () => {
 
   const onNext = () => {
     if (pinCodeValidation(pin)) {
-      history.push('/apply/15/long');
+      const param: IParam = {
+        addressInformation: [
+          ...plApplication.data.list.addressInformationDetails.map((item) => {
+            if (item.addressType === 'OFFICE') {
+              item.isActive = 0;
+            }
+
+            return item;
+          }),
+          {
+            addressLine1: address.addressLine1?.toString() || '',
+            addressLine2: address.addressLine2?.toString() || '',
+            city: address.city?.toString() || '',
+            state: address.state?.toString() || '',
+            seqNo: -1,
+            addressType: 'OFFICE',
+            isActive: 1,
+            source: address.source?.toString() || '',
+            zipCode: address.zipCode?.toString() || '',
+          },
+        ],
+      };
+
+      addPLAddress(param);
     } else {
       setvalidPin(false);
     }
@@ -67,8 +141,8 @@ const OfficeAddress = () => {
   const enterPinCode = async (value: string) => {
     if (value.length > 6) return;
 
-    setvalidPin(true);
     setPin(value);
+    setvalidPin(true);
 
     if (value.length === 6) {
       const res = await getPINCodeDetail(value);
@@ -78,9 +152,15 @@ const OfficeAddress = () => {
       }
       setpinFound(true);
       setAddress({
-        ...address,
+        addressType: 'OFFICE',
         state: res.data.state,
         city: res.data.city,
+        addressLine1: '',
+        addressLine2: '',
+        seqNo: -1,
+        isActive: 1,
+        source: 'CUSTINPUT',
+        zipCode: value,
       });
     }
   };
@@ -104,6 +184,7 @@ const OfficeAddress = () => {
             onChange={(v) => enterPinCode(v)}
             placeholder="Enter 6 digit of your office PIN code"
             type="number"
+            value={pin}
             error={!validPin}
           />
         </div>
@@ -138,11 +219,28 @@ const OfficeAddress = () => {
 
         <div className="flex-1"></div>
         <div className="next-btn-wrapper">
-          <Button text="NEXT" disabled={isDisable()} onClick={onNext} />
+          <Button
+            text="NEXT"
+            disabled={isDisable()}
+            onClick={onNext}
+            loading={plApplication.loading}
+          />
         </div>
       </div>
     </>
   );
 };
 
-export default OfficeAddress;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      addPLAddress: (param) => addAddress(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(OfficeAddress);

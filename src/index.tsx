@@ -22,7 +22,7 @@ localStorage.setItem('campaign-code', 'CHESSKKIN11G');
 const header = {
   'Content-Type': 'application/json',
   // 'MMK-Auth': localStorage.getItem('mmk-auth'), // production
-  'MMK-Auth': 'MmkAuthKey_355185ac-7229-4873-83af-0fdf3096a598', // development
+  'MMK-Auth': 'MmkAuthKey_777608ab-1c2f-4ba6-926d-f0537ed3ae15', // development
 };
 
 axios.defaults.baseURL = process.env.REACT_APP_BACKEND_DOMAIN;

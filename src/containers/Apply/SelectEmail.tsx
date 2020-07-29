@@ -15,7 +15,7 @@ import { IPLAppData } from 'services/getPLApplication/types';
 import { IParam } from 'services/saveApplication/types';
 import { ILoading } from 'redux/reducers/types';
 import { IPLAppState } from 'redux/reducers';
-import { saveApplication } from 'redux/actions/plApplication';
+import { addEmail } from 'redux/actions/plApplication';
 import { usePrevious } from 'utitlity/helper';
 
 interface StateProps {
@@ -23,7 +23,7 @@ interface StateProps {
 }
 
 interface DispatchProps {
-  savePLApplication: (param: IParam) => void;
+  addPLEmail: (param: IParam) => void;
 }
 
 type TEmailItem = {
@@ -35,7 +35,7 @@ type TEmailItem = {
 
 const SelectEmail: React.FC<StateProps & DispatchProps> = ({
   plApplication,
-  savePLApplication,
+  addPLEmail,
 }) => {
   const [emailList, setemailList] = useState<Array<TEmailItem>>([]);
   const [email, setEmail] = useState<string>('');
@@ -47,10 +47,19 @@ const SelectEmail: React.FC<StateProps & DispatchProps> = ({
   const previousLoading = usePrevious(plApplication.loading);
 
   useEffect(() => {
+    if (previousLoading) {
+      history.push('/apply/14');
+    }
     setemailList(
       plApplication.data.list.emailInformationDetails.filter(
         (email) => email.emailType === 'PERSONAL'
       )
+    );
+
+    setEmail(
+      plApplication.data.list.emailInformationDetails.filter(
+        (email) => email.emailType === 'PERSONAL' && email.isActive === 1
+      )[0]?.emailAddress || ''
     );
   }, [plApplication]);
 
@@ -61,12 +70,17 @@ const SelectEmail: React.FC<StateProps & DispatchProps> = ({
   const addNewEmail = () => {
     if (emailValidation(newEmail)) {
       setemailList([
-        ...emailList,
+        ...emailList.map((email) => ({
+          emailAddress: email.emailAddress,
+          emailType: 'PERSONAL',
+          seqNo: email.seqNo,
+          isActive: 0,
+        })),
         {
           emailAddress: newEmail,
           emailType: 'PERSONAL',
-          seqNo: new Date().getTime(),
-          isActive: 0,
+          seqNo: -new Date().getTime(),
+          isActive: 1,
         },
       ]);
       setopenModal(false);
@@ -74,6 +88,19 @@ const SelectEmail: React.FC<StateProps & DispatchProps> = ({
     } else {
       setinvalidEmail(true);
     }
+  };
+
+  const onNext = () => {
+    const param: IParam = {
+      emailAddresses: [
+        ...plApplication.data.list.emailInformationDetails.filter(
+          (email) => email.emailType !== 'PERSONAL'
+        ),
+        ...emailList,
+      ],
+    };
+
+    addPLEmail(param);
   };
 
   return (
@@ -91,7 +118,28 @@ const SelectEmail: React.FC<StateProps & DispatchProps> = ({
           <div
             className="mmk-loan-email-select-item"
             key={index.toString()}
-            onClick={() => setEmail(item.emailAddress || '')}
+            onClick={() => {
+              setemailList([
+                ...emailList.map((email) => {
+                  if (email.emailAddress === item.emailAddress) {
+                    return {
+                      emailAddress: email.emailAddress,
+                      emailType: 'PERSONAL',
+                      seqNo: email.seqNo,
+                      isActive: 1,
+                    };
+                  }
+
+                  return {
+                    emailAddress: email.emailAddress,
+                    emailType: 'PERSONAL',
+                    seqNo: email.seqNo,
+                    isActive: 0,
+                  };
+                }),
+              ]);
+              setEmail(item.emailAddress || '');
+            }}
           >
             <div className="mmk-loan-email-select-item-text">
               {item.emailAddress}
@@ -116,7 +164,8 @@ const SelectEmail: React.FC<StateProps & DispatchProps> = ({
           <Button
             text="NEXT"
             disabled={isDisable()}
-            onClick={() => history.push('/apply/14')}
+            onClick={onNext}
+            loading={plApplication.loading}
           />
         </div>
         {openModal && (
@@ -155,7 +204,7 @@ const mapStateToProps = (action: IPLAppState): StateProps => {
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
   bindActionCreators(
     {
-      savePLApplication: (param) => saveApplication(param),
+      addPLEmail: (param) => addEmail(param),
     },
     dispatch
   );

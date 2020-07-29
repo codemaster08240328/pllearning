@@ -18,7 +18,7 @@ const UploadIcon: React.FC<IProps> = ({ color }) => {
           d="M13 13c.552 0 1 .448 1 1s-.448 1-1 1H1c-.552 0-1-.448-1-1s.448-1 1-1h12zM6.593.186c.23-.248.602-.248.832 0l4.411 4.75c.17.182.22.454.128.691-.091.237-.306.391-.543.391l-3.422.001L8 11.01c0 .552-.448 1-1 1s-1-.448-1-1V6.02H2.596c-.237 0-.452-.155-.543-.392-.03-.078-.045-.16-.045-.242 0-.165.06-.327.172-.448z"
         />
       </defs>
-      <g fill="none" fill-rule="evenodd" transform="translate(1)">
+      <g fill="none" fillRule="evenodd" transform="translate(1)">
         <mask id="prefix__b_upload" fill="#fff">
           <use href="#prefix__a_upload" />
         </mask>

@@ -58,35 +58,63 @@ export const addAddress = (param: IParam) => (
   dispatch: Redux.Dispatch,
   getState: () => IPLAppState
 ) => {
-  // dispatch({
-  //   type: FETCH_PL_APPLICATION,
-  // });
+  dispatch({
+    type: FETCH_PL_APPLICATION,
+  });
 
   const plApplication = getState().plApplicationDetail;
 
   const params = {
     ...plApplication.data.list.applicationDetails,
-    addressInformation: plApplication.data.list.addressInformationDetails.concat(
-      param.addressInformation || [
-        {
-          seqNo: null,
-          city: null,
-          state: null,
-          isActive: null,
-          addressType: null,
-          addressLine1: null,
-          addressLine2: null,
-          zipCode: null,
-          source: null,
-        },
-      ]
-    ),
+    addressInformation: param.addressInformation,
+    emailAddresses: plApplication.data.list.emailInformationDetails,
+    businessRegistrationNames:
+      plApplication.data.list.businessRegistrationDetails,
+    isNewApplication: plApplication.data.list.isNewApp,
+    businessRegistrationType: null, // TODO: should check with BE team
+    fastTrackPoint: true, // TODO: should check with BE team
+    nonPreferredSalaryCreditedBank: null, // TODO: should check with BE team
   };
 
   const updatedPlApplication = _.merge(plApplication, {
     data: {
       list: {
         addressInformationDetails: param.addressInformation,
+      },
+    },
+  });
+
+  savePLApplicationDetails(params).then((res) => {
+    dispatch(fetchApplicationSuccess(updatedPlApplication));
+  });
+};
+
+export const addEmail = (param: IParam) => (
+  dispatch: Redux.Dispatch,
+  getState: () => IPLAppState
+) => {
+  dispatch({
+    type: FETCH_PL_APPLICATION,
+  });
+
+  const plApplication = getState().plApplicationDetail;
+
+  const params = {
+    ...plApplication.data.list.applicationDetails,
+    addressInformation: plApplication.data.list.addressInformationDetails,
+    emailAddresses: param.emailAddresses,
+    businessRegistrationNames:
+      plApplication.data.list.businessRegistrationDetails,
+    isNewApplication: plApplication.data.list.isNewApp,
+    businessRegistrationType: null, // TODO: should check with BE team
+    fastTrackPoint: true, // TODO: should check with BE team
+    nonPreferredSalaryCreditedBank: null, // TODO: should check with BE team
+  };
+
+  const updatedPlApplication = _.merge(plApplication, {
+    data: {
+      list: {
+        emailInformationDetails: param.emailAddresses,
       },
     },
   });

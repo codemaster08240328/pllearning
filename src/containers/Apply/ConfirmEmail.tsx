@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Dispatch, bindActionCreators } from 'redux';
 import { useHistory, Link } from 'react-router-dom';
 import { BackIcon } from 'components/Icons';
 import StepFlow from 'components/StepFlow';
@@ -9,10 +11,43 @@ import { RunIcon } from 'components/Icons';
 
 import { emailValidation } from 'utitlity/helper';
 
-const ConfirmEmail = () => {
+import { IPLAppData } from 'services/getPLApplication/types';
+import { IParam } from 'services/saveApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import { addEmail } from 'redux/actions/plApplication';
+
+import { usePrevious } from 'utitlity/helper';
+
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
+
+interface DispatchProps {
+  addPLWorkEmail: (param: IParam) => void;
+}
+
+const ConfirmEmail: React.FC<StateProps & DispatchProps> = ({
+  plApplication,
+  addPLWorkEmail,
+}) => {
   const history = useHistory();
   const [email, setEmail] = useState<string>('');
   const [validEmail, setvalidEmail] = useState(true);
+
+  const previousLoading = usePrevious(plApplication.loading);
+
+  useEffect(() => {
+    if (previousLoading) {
+      history.push('/apply/13');
+    }
+
+    setEmail(
+      plApplication.data.list.emailInformationDetails.filter(
+        (email) => email.isActive === 1 && email.emailType === 'OFFICE'
+      )[0]?.emailAddress || ''
+    );
+  }, [plApplication]);
 
   const isDisable = () => {
     return !email;
@@ -20,7 +55,31 @@ const ConfirmEmail = () => {
 
   const onNext = () => {
     if (emailValidation(email)) {
-      history.push('/apply/13');
+      const param: IParam = {
+        emailAddresses: [
+          ...plApplication.data.list.emailInformationDetails.map((email) => {
+            if (email.emailType === 'OFFICE') {
+              return {
+                emailType: email.emailType,
+                emailAddress: email.emailAddress,
+                isActive: 0,
+                seqNo: email.seqNo,
+              };
+            }
+
+            return email;
+          }),
+
+          {
+            emailAddress: email,
+            emailType: 'OFFICE',
+            isActive: 1,
+            seqNo: -1,
+          },
+        ],
+      };
+
+      addPLWorkEmail(param);
     } else {
       setvalidEmail(false);
     }
@@ -42,6 +101,7 @@ const ConfirmEmail = () => {
               setEmail(v);
               setvalidEmail(true);
             }}
+            value={email}
             placeholder="Type your work email address"
             error={!validEmail}
             type="email"
@@ -57,11 +117,28 @@ const ConfirmEmail = () => {
         </div>
         <div className="flex-1"></div>
         <div className="next-btn-wrapper">
-          <Button text="NEXT" disabled={isDisable()} onClick={onNext} />
+          <Button
+            text="NEXT"
+            disabled={isDisable()}
+            onClick={onNext}
+            loading={plApplication.loading}
+          />
         </div>
       </div>
     </>
   );
 };
 
-export default ConfirmEmail;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+const mapDispatchToProps = (dispatch: Dispatch): DispatchProps =>
+  bindActionCreators(
+    {
+      addPLWorkEmail: (param) => addEmail(param),
+    },
+    dispatch
+  );
+
+export default connect(mapStateToProps, mapDispatchToProps)(ConfirmEmail);
