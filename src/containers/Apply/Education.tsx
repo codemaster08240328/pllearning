@@ -26,7 +26,7 @@ type TSelectItem = {
   label: string;
 };
 
-const educations: Array<TSelectItem> = [
+export const educations: Array<TSelectItem> = [
   {
     value: 'PLEDU01',
     label: 'PhD',

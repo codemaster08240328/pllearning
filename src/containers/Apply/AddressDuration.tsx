@@ -28,7 +28,7 @@ type TSelectItem = {
   label: string;
 };
 
-const years = [
+export const years = [
   {
     value: 'PLCADD01',
     label: 'Less than 1 year',

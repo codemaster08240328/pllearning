@@ -44,7 +44,7 @@ const AppRouter: React.FC<StateProps & DispatchProps> = ({
         <Route path="/hardwork" exact component={HardWork} />
         <Route path="/application-saved" exact component={ApplicationSaved} />
         <Route
-          path="/application-summary"
+          path="/application-summary/:type"
           exact
           component={ApplicationSummary}
         />

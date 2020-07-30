@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import FileUpload from '../../components/FileUpload';
+import { connect } from 'react-redux';
+import { Link, useParams, useHistory } from 'react-router-dom';
+import FileUpload from 'components/FileUpload';
 import {
   ArrowIcon,
   InfoIcon,
@@ -9,23 +10,40 @@ import {
   CircledPlusIcon,
   BackIcon,
   CircledCheckIcon,
-} from '../../components/Icons';
-import Button from '../../components/Button';
-import { BottomModal, Modal } from '../../components/Modal';
-import StepFlow from '../../components/StepFlow';
+} from 'components/Icons';
+import Button from 'components/Button';
+import { BottomModal, Modal } from 'components/Modal';
+import StepFlow from 'components/StepFlow';
 import { TRouterParam } from './types';
 
-import SmallUploadDocu from '../../assets/document-upload.png';
-import MediumUploadDocu from '../../assets/document-upload@2x.png';
-import LargeUploadDocu from '../../assets/document-upload@3x.png';
+import { uploadFile } from 'services/uploadFile/service';
+import { IParam as IUploadParam } from 'services/uploadFile/types';
+import { deleteFile } from 'services/deleteFile/service';
+import { IParam as IDeleteParam } from 'services/deleteFile/types';
 
-import SmallDropIcon from '../../assets/dropped.png';
-import MediumDropIcon from '../../assets/dropped@2x.png';
-import LargeDropIcon from '../../assets/dropped@3x.png';
+import SmallUploadDocu from 'assets/document-upload.png';
+import MediumUploadDocu from 'assets/document-upload@2x.png';
+import LargeUploadDocu from 'assets/document-upload@3x.png';
+
+import SmallDropIcon from 'assets/dropped.png';
+import MediumDropIcon from 'assets/dropped@2x.png';
+import LargeDropIcon from 'assets/dropped@3x.png';
+import { IPLAppData } from 'services/getPLApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+import Loading from 'components/Loading';
 
 type TProps = {
   title: string;
   onOpen?: (v: boolean) => void;
+};
+
+type StateProps = {
+  plApplication: IPLAppData & ILoading;
+};
+
+type TDocuItem = {
+  [key: string]: string;
 };
 
 const addressTypes = [
@@ -39,6 +57,13 @@ const addressTypes = [
   'LIC POLICY',
   'COMPANY ACCOMODATION PROOF',
   'POST PAID MOBILE BILL',
+];
+
+export const docuTypes = [
+  'panCard',
+  'salarySlip',
+  'bankStatement',
+  'addressProof',
 ];
 
 const DocuItem: React.FC<TProps> = ({ title, onOpen }) => {
@@ -57,14 +82,72 @@ const DocuItem: React.FC<TProps> = ({ title, onOpen }) => {
   );
 };
 
-const UploadDocu = () => {
+const UploadDocu: React.FC<StateProps> = ({ plApplication }) => {
   const [openIncome, setopenIncome] = useState(false);
+  const [uploadedDocs, setuploadedDocs] = useState<Array<TDocuItem>>([]);
   const [openModal, setopenModal] = useState(false);
   const [addressType, setaddressType] = useState('');
   const [openSkipModal, setopenSkipModal] = useState(false);
   const [salarySlips, setsalarySlips] = useState(['']);
   const [bankstatements, setbankstatements] = useState(['']);
+  const [loading, setloading] = useState(false);
   const { type } = useParams<TRouterParam>();
+
+  const history = useHistory();
+
+  const actionComplete = (type: string) => {
+    const docs = uploadedDocs.filter((item) => item.docuType.includes(type));
+
+    return docs.length;
+  };
+
+  const checkDisable = () => {
+    let res = false;
+
+    docuTypes.forEach((type) => {
+      const docs = uploadedDocs.filter((item) => item.docuType.includes(type));
+      res = res || !docs.length;
+    });
+
+    return res;
+  };
+
+  const uploadDocu = (file: File | undefined, type: string) => {
+    setloading(true);
+    if (!!file) {
+      const param: IUploadParam = {
+        file: file,
+        documentType: type,
+        sourceName: 'PLONLINE',
+        filePassword: '',
+        applicationID: (plApplication.data.list.appID || '').toString(),
+      };
+
+      uploadFile(param).then((res) => {
+        if (!res.isProtected) {
+          setloading(false);
+          setuploadedDocs([
+            ...uploadedDocs,
+            {
+              docuType: type,
+              docID: res.uploadDetails.recordID.toString(),
+              s3key: res.uploadDetails.S3FileName,
+            },
+          ]);
+        }
+      });
+    } else {
+      const file = uploadedDocs.filter((item) => item.docuType === type)[0];
+      const param: IDeleteParam = {
+        documentID: file.docID,
+        documentS3Key: file.s3key,
+      };
+
+      deleteFile(param).then((res) => {
+        setloading(false);
+      });
+    }
+  };
 
   return (
     <>
@@ -98,18 +181,31 @@ const UploadDocu = () => {
           <div className="mmk-upload-docu-upload-item">
             <div className="mmk-upload-docu-item-label">
               <label className="mr-8">1. PAN Card</label>
-              <CircledCheckIcon checked color="#37d47e" size={16} />
+              {!!actionComplete(docuTypes[0]) && (
+                <CircledCheckIcon checked color="#37d47e" size={16} />
+              )}
             </div>
-            <FileUpload accept=".pdf,.jpeg,.jpg" className="mt-8" size={4} />
+            <FileUpload
+              onChange={(file) => uploadDocu(file, docuTypes[0])}
+              accept=".pdf,.jpeg,.jpg"
+              className="mt-8"
+              size={4}
+            />
             <div className="mmk-upload-docu-item-label mt-24">
               <label className="mr-8">2. Last 3 months salary slip</label>
-              <CircledCheckIcon checked color="#37d47e" size={16} />
+
+              {!!actionComplete(docuTypes[1]) && (
+                <CircledCheckIcon checked color="#37d47e" size={16} />
+              )}
             </div>
             {salarySlips.map((item, index) => (
               <FileUpload
                 className="mt-8"
                 accept=".pdf,.jpeg,.jpg"
                 key={index.toString()}
+                onChange={(file) =>
+                  uploadDocu(file, `${docuTypes[1]}-${index}`)
+                }
               />
             ))}
             <div
@@ -121,13 +217,18 @@ const UploadDocu = () => {
             </div>
             <div className="mmk-upload-docu-item-label mt-8">
               <label className="mr-8">3. Bank Statement</label>
-              <CircledCheckIcon checked color="#37d47e" size={16} />
+              {!!actionComplete(docuTypes[2]) && (
+                <CircledCheckIcon checked color="#37d47e" size={16} />
+              )}
             </div>
             {bankstatements.map((item, index) => (
               <FileUpload
                 className="mt-8"
                 accept=".pdf,.jpeg,.jpg"
                 key={index.toString()}
+                onChange={(file) =>
+                  uploadDocu(file, `${docuTypes[2]}-${index}`)
+                }
               />
             ))}
             <div className="mmk-upload-docu-accordion-desc">
@@ -143,7 +244,9 @@ const UploadDocu = () => {
             </div>
             <div className="mmk-upload-docu-item-label mt-8">
               <label className="mr-8">4. Current address proof</label>
-              <CircledCheckIcon checked color="#37d47e" size={16} />
+              {!!actionComplete(docuTypes[3]) && (
+                <CircledCheckIcon checked color="#37d47e" size={16} />
+              )}
             </div>
             <div
               className="mmk-company-type mt-8"
@@ -161,7 +264,11 @@ const UploadDocu = () => {
                 <ArrowIcon direction="down" />
               </div>
             </div>
-            <FileUpload className="mt-16" accept=".pdf,.jpeg,.jpg" />
+            <FileUpload
+              className="mt-16"
+              accept=".pdf,.jpeg,.jpg"
+              onChange={(file) => uploadDocu(file, docuTypes[3])}
+            />
             <div className="mmk-upload-docu-accordion-desc">
               <InfoIcon color="#999" />
               <div>
@@ -194,7 +301,11 @@ const UploadDocu = () => {
               <FileUpload className="mt-8" accept=".pdf,.jpeg,.jpg" />
             </div>
           )}
-          <Button text="REVIEW" disabled />
+          <Button
+            text="REVIEW"
+            disabled={checkDisable()}
+            onClick={() => history.push(`/application-summary/${type}`)}
+          />
           <div
             onClick={() => setopenSkipModal(true)}
             className="mmk-upload-docu-skip"
@@ -247,15 +358,33 @@ const UploadDocu = () => {
               You will get an opportunity to review your application
             </div>
             <div className="mt-16 mb-24 mmk-bank-salary-modal-gold-loan">
-              <Button text="CONTINUE UPLOAD" />
-              <div className="mmk-upload-docu-skip">SAVE & CONTINUE LATER</div>
-              <div className="mmk-upload-docu-skip">SKIP AND REVIEW</div>
+              <Button
+                onClick={() => setopenSkipModal(false)}
+                text="CONTINUE UPLOAD"
+              />
+              <div
+                onClick={() => history.push(`/application-summary/${type}`)}
+                className="mmk-upload-docu-skip"
+              >
+                SAVE & CONTINUE LATER
+              </div>
+              <div
+                onClick={() => history.push(`/application-summary/${type}`)}
+                className="mmk-upload-docu-skip"
+              >
+                SKIP AND REVIEW
+              </div>
             </div>
           </Modal>
         )}
       </div>
+      {loading && <Loading />}
     </>
   );
 };
 
-export default UploadDocu;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+export default connect(mapStateToProps)(UploadDocu);

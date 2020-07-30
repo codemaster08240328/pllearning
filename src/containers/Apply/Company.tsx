@@ -58,16 +58,15 @@ const Company: React.FC<StateProps & DispatchProps> = ({
       history.push(`/apply/6/${type}`);
     }
 
-    setCompany(
-      {
+    !!plApplication.data.list.applicationDetails.employerName &&
+      setCompany({
         value:
           plApplication.data.list.applicationDetails.employerName ==
           noMatchOption.label
             ? 'none'
             : plApplication.data.list.applicationDetails.employerName || '',
         label: plApplication.data.list.applicationDetails.employerName || '',
-      } || undefined
-    );
+      });
 
     setCompanyType(
       plApplication.data.list.applicationDetails.organizationType || undefined

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CheckGreyIcon = () => {
+const CheckGreyIcon = ({ color }: { color?: string }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -19,7 +19,7 @@ const CheckGreyIcon = () => {
           <use href="#prefix__a" />
         </mask>
         <use fill="#979797" fill-rule="nonzero" href="#prefix__a" />
-        <g fill="#3A3A3A" mask="url(#prefix__b)">
+        <g fill={color ? color : '#3A3A3A'} mask="url(#prefix__b)">
           <path d="M0 0L64 0 64 64 0 64z" transform="translate(0 -2)" />
         </g>
       </g>

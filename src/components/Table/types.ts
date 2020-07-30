@@ -1,7 +1,8 @@
 export type TFieldItem = {
   key: string;
   label: string;
-  component?: React.ReactNode;
+  component?: () => React.ReactNode;
+  error?: () => boolean;
 };
 
 export type TItem = {

@@ -1,10 +1,10 @@
 import React, { useState, useRef, MouseEvent } from 'react';
 import { IProps, Event } from './types';
-import { UploadIcon, CircledCloseIcon, AlertIcon } from '../Icons';
-
-import PDFViewer from 'pdf-viewer-reactjs';
+import { UploadIcon, CircledCloseIcon, AlertIcon, CloseIcon } from '../Icons';
 
 import './style.scss';
+import { Modal } from 'components/Modal';
+import Button from 'components/Button';
 
 const getBase64 = (file: File) =>
   new Promise<string>((resolve, rejects) => {
@@ -24,6 +24,8 @@ const FileUpload: React.FC<IProps> = ({
   const [file, setFile] = useState<File>();
   const [filecontent, setfilecontent] = useState<string>();
   const [componentError, setcomponentError] = useState(false);
+  const [preview, setpreview] = useState(false);
+  const [openDeleteModal, setopenDeleteModal] = useState(false);
 
   const hiddenFileInput = useRef<HTMLInputElement>(null);
 
@@ -39,7 +41,6 @@ const FileUpload: React.FC<IProps> = ({
 
     fileUploaded &&
       getBase64(fileUploaded).then((res: string) => {
-        console.log(res);
         setfilecontent(res);
       });
 
@@ -57,6 +58,15 @@ const FileUpload: React.FC<IProps> = ({
 
   const cancelSelect = (e: MouseEvent) => {
     e.stopPropagation();
+    setopenDeleteModal(true);
+  };
+
+  const reviewClick = (e: MouseEvent) => {
+    e.stopPropagation();
+    setpreview(true);
+  };
+
+  const okDelete = () => {
     setFile(undefined);
     setfilecontent('');
     setcomponentError(false);
@@ -64,11 +74,11 @@ const FileUpload: React.FC<IProps> = ({
     if (onChange) {
       onChange(undefined);
     }
+    setopenDeleteModal(false);
   };
 
-  const reviewClick = (e: MouseEvent) => {
-    e.stopPropagation();
-    console.log(file?.type);
+  const cancelDelete = () => {
+    setopenDeleteModal(false);
   };
 
   return (
@@ -108,11 +118,46 @@ const FileUpload: React.FC<IProps> = ({
           </div>
         </div>
       )}
-      {/* {filecontent && <PDFViewer document={{ base64: filecontent }} />} */}
-      {filecontent && <img src={filecontent} />}
-      {/* {file && (
-        <embed src={URL.createObjectURL(file)} className="preview-docu" />
-      )} */}
+      {preview && (
+        <div className="preview-docu">
+          <div className="preview-action" onClick={() => setpreview(false)}>
+            <CloseIcon />
+          </div>
+          <div className="preview-content">
+            <embed src={filecontent} type={file?.type} width="100%" />
+          </div>
+        </div>
+      )}
+
+      {openDeleteModal && (
+        <Modal>
+          <div
+            onClick={() => setopenDeleteModal(false)}
+            className="mmk-company-modal-close"
+          >
+            <CloseIcon />
+          </div>
+
+          <h3 className="mmk-company-modal-title align-center">
+            Are you sure you want to delete this file?
+          </h3>
+
+          <div className="delete-modal-actions">
+            <Button
+              text="YES"
+              type="ghost"
+              className="yes-button"
+              onClick={okDelete}
+            />
+            <Button
+              text="NO"
+              type="ghost"
+              className="no-button"
+              onClick={cancelDelete}
+            />
+          </div>
+        </Modal>
+      )}
     </>
   );
 };

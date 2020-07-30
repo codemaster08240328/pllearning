@@ -1,6 +1,6 @@
 export interface IProps {
   error?: boolean;
-  onChange?: (file: File | undefined) => {};
+  onChange?: (file: File | undefined) => void;
   accept?: string;
   className?: string;
   size?: number;

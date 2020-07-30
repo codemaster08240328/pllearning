@@ -84,6 +84,8 @@ export const addAddress = (param: IParam) => (
     },
   });
 
+  console.log(param, updatedPlApplication);
+
   savePLApplicationDetails(params).then((res) => {
     dispatch(fetchApplicationSuccess(updatedPlApplication));
   });

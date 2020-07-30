@@ -129,11 +129,16 @@ const Address: React.FC<StateProps & DispatchProps> = ({
 
     if (!!pinCode) {
       setOpenModal(false);
-      setaddressList(
+
+      const list =
         plApplication.data.list.addressInformationDetails.filter(
-          (address) => address.zipCode === pinCode
-        ) || []
-      );
+          (address) =>
+            address.zipCode === pinCode && address.addressType === 'RESIDENCE'
+        ) || [];
+
+      console.log(list);
+
+      setaddressList(list);
     }
   }, [plApplication]);
 
@@ -181,7 +186,8 @@ const Address: React.FC<StateProps & DispatchProps> = ({
 
     setaddressList(
       plApplication.data.list.addressInformationDetails.filter(
-        (address) => address.zipCode === item
+        (address) =>
+          address.zipCode === item && address.addressType === 'RESIDENCE'
       ) || []
     );
 
@@ -210,7 +216,10 @@ const Address: React.FC<StateProps & DispatchProps> = ({
 
     let param: IParam = {};
 
+    console.log(enterPin);
+
     if (!enterPin) {
+      console.log(addressList);
       param = {
         addressInformation: [
           ...plApplication.data.list.addressInformationDetails.filter(
@@ -253,6 +262,8 @@ const Address: React.FC<StateProps & DispatchProps> = ({
         ],
       };
     }
+
+    console.log(param);
 
     addPLAddress(param);
   };
@@ -492,7 +503,6 @@ const Address: React.FC<StateProps & DispatchProps> = ({
                 className="mt-16 mb-32"
                 disabled={!street || !flat}
                 onClick={() => {
-                  const index = addressList.length;
                   setaddressList([
                     ...addressList.map((address) => ({
                       addressLine1: address.addressLine1,

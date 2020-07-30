@@ -1,201 +1,293 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Dispatch, bindActionCreators } from 'redux';
+import { Link, useHistory, useParams } from 'react-router-dom';
+import { TRouterParam } from '../Apply/types';
 
 import Table from 'components/Table';
 import { TFieldItem, TItem } from 'components/Table/types';
 import Button from 'components/Button';
-import { BackIcon, CheckGreyIcon } from 'components/Icons';
+import { BackIcon, CheckGreyIcon, CloseIcon } from 'components/Icons';
+
+import { IPLAppData } from 'services/getPLApplication/types';
+import { ILoading } from 'redux/reducers/types';
+import { IPLAppState } from 'redux/reducers';
+
+import { getUploadedDocu } from 'services/getDocuments/service';
+import { IParam, TDocumentInfo } from 'services/getDocuments/types';
+
+import { years as loanDurations } from '../Apply/LoanDuration';
+import { years as addressDuration } from '../Apply/AddressDuration';
+import { docuTypes } from '../Apply/UploadDocu';
 
 import './ApplicationSummary.scss';
 
-const loanDummyDetails: TItem = {
-  'loan-amount': '₹ 100,000',
-  'time-to-repay': '2 years',
-  'income-type': 'Salary',
-  'salary-per-month': '₹ 30,000',
-  'company-name': 'ABC',
-  'salary-account': 'HDFC',
-};
+interface StateProps {
+  plApplication: IPLAppData & ILoading;
+}
 
-const renderLoanDetailTable = () => {
-  const fields: Array<TFieldItem> = [
-    {
-      key: 'loan-amount',
-      label: 'Loan Amount',
-    },
-    {
-      key: 'time-to-repay',
-      label: 'Time To Repay',
-    },
-    {
-      key: 'income-type',
-      label: 'Income Type',
-    },
-    {
-      key: 'salary-per-month',
-      label: 'Salary Per Month',
-    },
-    {
-      key: 'company-name',
-      label: 'Company Name',
-    },
-    {
-      key: 'salary-account',
-      label: 'Salary Account',
-    },
-  ];
+const ApplicationSummary: React.FC<StateProps> = ({ plApplication }) => {
+  const [documents, setDocuments] = useState<Array<TDocumentInfo>>([]);
+  const history = useHistory();
+  const { type } = useParams<TRouterParam>();
 
-  return <Table fields={fields} items={loanDummyDetails} />;
-};
+  useEffect(() => {
+    const param: IParam = {
+      appID: (plApplication.data.list.appID || 0).toString(),
+    };
 
-const addressDummyData: TItem = {
-  pin: '111111',
-  address: '8A, 4/F, A Building, 2 A street',
-  city: 'New Delhi',
-  state: 'Delhi',
-  'years-at-address': 'Less than 1 year',
-  'years-at-city': 'Less than 1 year',
-};
+    getUploadedDocu(param).then((res) => {
+      console.log(res);
+      setDocuments(res.documentInfo);
+    });
+  }, [plApplication]);
 
-const renderAddress = () => {
-  const fields: Array<TFieldItem> = [
-    {
-      key: 'pin',
-      label: 'PIN Code',
-    },
-    {
-      key: 'address',
-      label: 'Address',
-    },
-    {
-      key: 'city',
-      label: 'City',
-    },
-    {
-      key: 'state',
-      label: 'State',
-    },
-    {
-      key: 'years-at-address',
-      label: 'Years at address',
-    },
-    {
-      key: 'years-at-city',
-      label: 'Years at City',
-    },
-  ];
+  const residenceAddress = plApplication.data.list.addressInformationDetails.filter(
+    (item) => item.addressType === 'RESIDENCE' && item.isActive === 1
+  )[0];
 
-  return <Table fields={fields} items={addressDummyData} />;
-};
+  const loanDetails: TItem = {
+    'loan-amount': `₹ ${
+      plApplication.data.list.applicationDetails.requiredPLAmount || ''
+    }`,
+    'time-to-repay': loanDurations.filter(
+      (item) => plApplication.data.list.applicationDetails.repayableYears || ''
+    )[0]?.label,
+    'income-type':
+      plApplication.data.list.applicationDetails.employerType || '',
+    'salary-per-month': `₹ ${
+      plApplication.data.list.applicationDetails.netMonthlySalary || ''
+    }`,
+    'company-name':
+      plApplication.data.list.applicationDetails.employerName || '',
+    'salary-account':
+      plApplication.data.list.applicationDetails.salaryCreditBank || '',
+  };
 
-const employerDummyData: TItem = {
-  email: 'test@mmk.com',
-  'office-address': '8A, 4/F, A Building, 2 A street',
-  city: 'New Delhi',
-  state: 'Delhi',
-  pin: '111111',
-};
+  const addressDummyData: TItem = {
+    pin: residenceAddress?.zipCode || '',
+    address: `${residenceAddress?.addressLine1 || ''}, ${
+      residenceAddress?.addressLine2 || ''
+    }`,
+    city: residenceAddress?.city || '',
+    state: residenceAddress?.state || '',
+    'years-at-address':
+      addressDuration.filter(
+        (item) =>
+          item.value ===
+            plApplication.data.list.applicationDetails.yrsAtCurrentResidence ||
+          ''
+      )[0]?.label || '',
+    'years-at-city':
+      addressDuration.filter(
+        (item) =>
+          item.value ===
+            plApplication.data.list.applicationDetails.yrsAtCurrentCity || ''
+      )[0]?.label || '',
+  };
 
-const renderEmployerTable = () => {
-  const fields: Array<TFieldItem> = [
-    {
-      key: 'email',
-      label: 'Work email',
-    },
-    {
-      key: 'office-address',
-      label: 'Office address',
-    },
-    {
-      key: 'city',
-      label: 'City',
-    },
-    {
-      key: 'state',
-      label: 'State',
-    },
-    {
-      key: 'pin',
-      label: 'PIN code',
-    },
-  ];
+  const renderLoanDetailTable = () => {
+    const fields: Array<TFieldItem> = [
+      {
+        key: 'loan-amount',
+        label: 'Loan Amount',
+      },
+      {
+        key: 'time-to-repay',
+        label: 'Time To Repay',
+      },
+      {
+        key: 'income-type',
+        label: 'Income Type',
+      },
+      {
+        key: 'salary-per-month',
+        label: 'Salary Per Month',
+      },
+      {
+        key: 'company-name',
+        label: 'Company Name',
+      },
+      {
+        key: 'salary-account',
+        label: 'Salary Account',
+      },
+    ];
 
-  return <Table items={employerDummyData} fields={fields} />;
-};
+    return <Table fields={fields} items={loanDetails} />;
+  };
 
-const addInformationDummy: TItem = {
-  'number-dependants': '1 person',
-  education: 'Bachelor',
-  'email-approval': 'test@mmk.com',
-};
+  const renderAddress = () => {
+    const fields: Array<TFieldItem> = [
+      {
+        key: 'pin',
+        label: 'PIN Code',
+      },
+      {
+        key: 'address',
+        label: 'Address',
+      },
+      {
+        key: 'city',
+        label: 'City',
+      },
+      {
+        key: 'state',
+        label: 'State',
+      },
+      {
+        key: 'years-at-address',
+        label: 'Years at address',
+      },
+      {
+        key: 'years-at-city',
+        label: 'Years at City',
+      },
+    ];
 
-const renderAddInformationTable = () => {
-  const fields: Array<TFieldItem> = [
-    {
-      key: 'number-dependants',
-      label: 'No. of dependants',
-    },
-    {
-      key: 'education',
-      label: 'Education',
-    },
-    {
-      key: 'email-approval',
-      label: 'Email approval',
-    },
-  ];
+    return <Table fields={fields} items={addressDummyData} />;
+  };
 
-  return <Table items={addInformationDummy} fields={fields} />;
-};
+  const renderDocumentTable = () => {
+    const fields: Array<TFieldItem> = [
+      {
+        key: 'document-1',
+        label: 'Document 1',
+        error: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[0].toLowerCase())
+          ).length;
 
-const renderDocumentTable = () => {
-  const fields: Array<TFieldItem> = [
-    {
-      key: 'document-1',
-      label: 'Document 1',
-      component: (
-        <div className="document-table-value">
-          <div className="document-table-value-txt">Uploaded</div>
-          <CheckGreyIcon />
-        </div>
-      ),
-    },
-    {
-      key: 'document-2',
-      label: 'Document 2',
-      component: (
-        <div className="document-table-value">
-          <div className="document-table-value-txt">Uploaded</div>
-          <CheckGreyIcon />
-        </div>
-      ),
-    },
-    {
-      key: 'document-3',
-      label: 'Document 3',
-      component: (
-        <div className="document-table-value">
-          <div className="document-table-value-txt">Uploaded</div>
-          <CheckGreyIcon />
-        </div>
-      ),
-    },
-    {
-      key: 'document-4',
-      label: 'Document 4',
-      component: (
-        <div className="document-table-value">
-          <div className="document-table-value-txt">Uploaded</div>
-          <CheckGreyIcon />
-        </div>
-      ),
-    },
-  ];
+          return isMissing;
+        },
+        component: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[0].toLowerCase())
+          ).length;
+          if (isMissing) {
+            return (
+              <div className="document-table-value">
+                <div className="document-table-value-txt">Missing</div>
+                <CloseIcon color="#d54c4c" size="16" />
+              </div>
+            );
+          }
+          return (
+            <div className="document-table-value">
+              <div className="document-table-value-txt">Uploaded</div>
+              <CheckGreyIcon color="#37d47e" />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'document-2',
+        label: 'Document 2',
+        error: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[1].toLowerCase())
+          ).length;
 
-  return <Table fields={fields} />;
-};
+          return isMissing;
+        },
+        component: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[1].toLowerCase())
+          ).length;
+          if (isMissing) {
+            return (
+              <div className="document-table-value">
+                <div className="document-table-value-txt">Missing</div>
+                <CloseIcon color="#d54c4c" size="16" />
+              </div>
+            );
+          }
+          return (
+            <div className="document-table-value">
+              <div className="document-table-value-txt">Uploaded</div>
+              <CheckGreyIcon color="#37d47e" />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'document-3',
+        label: 'Document 3',
+        error: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[2].toLowerCase())
+          ).length;
 
-const ApplicationSummary = () => {
+          return isMissing;
+        },
+        component: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[2].toLowerCase())
+          ).length;
+          if (isMissing) {
+            return (
+              <div className="document-table-value">
+                <div className="document-table-value-txt">Missing</div>
+                <CloseIcon color="#d54c4c" size="16" />
+              </div>
+            );
+          }
+          return (
+            <div className="document-table-value">
+              <div className="document-table-value-txt">Uploaded</div>
+              <CheckGreyIcon color="#37d47e" />
+            </div>
+          );
+        },
+      },
+      {
+        key: 'document-4',
+        label: 'Document 4',
+        error: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[3].toLowerCase())
+          ).length;
+
+          return isMissing;
+        },
+        component: () => {
+          const isMissing = !documents.filter((item) =>
+            item.documentType?.includes(docuTypes[3].toLowerCase())
+          ).length;
+          if (isMissing) {
+            return (
+              <div className="document-table-value">
+                <div className="document-table-value-txt">Missing</div>
+                <CloseIcon color="#d54c4c" size="16" />
+              </div>
+            );
+          }
+          return (
+            <div className="document-table-value">
+              <div className="document-table-value-txt">Uploaded</div>
+              <CheckGreyIcon color="#37d47e" />
+            </div>
+          );
+        },
+      },
+    ];
+
+    return <Table fields={fields} />;
+  };
+
+  const checkDisable = () => {
+    let res = false;
+
+    docuTypes.forEach((type) => {
+      const docs = documents.filter((item) =>
+        item.documentType?.includes(type.toLowerCase())
+      );
+      res = res || !docs.length;
+    });
+
+    return res;
+  };
+
   return (
     <div className="application-summary">
       <Link to="/application-saved" className="go-back">
@@ -212,19 +304,19 @@ const ApplicationSummary = () => {
           {renderAddress()}
         </div>
         <div className="application-summary-table">
-          <label className="ml-16 mb-8">Employer</label>
-          {renderEmployerTable()}
-        </div>
-        <div className="application-summary-table">
-          <label className="ml-16 mb-8">Additional Information</label>
-          {renderAddInformationTable()}
-        </div>
-        <div className="application-summary-table">
           <label className="ml-16 mb-8">Documents</label>
           {renderDocumentTable()}
         </div>
 
         <div className="application-summary-action">
+          {checkDisable() && (
+            <Button
+              onClick={() => history.push(`/apply/15/${type}`)}
+              text="CONTINUE UPLOAD"
+              className="mb-8"
+              type="ghost"
+            />
+          )}
           <Button text="GET MY LOAN OFFER" />
         </div>
       </div>
@@ -232,4 +324,8 @@ const ApplicationSummary = () => {
   );
 };
 
-export default ApplicationSummary;
+const mapStateToProps = (action: IPLAppState): StateProps => {
+  return { plApplication: action.plApplicationDetail };
+};
+
+export default connect(mapStateToProps)(ApplicationSummary);

@@ -26,7 +26,7 @@ interface DispatchProps {
   savePLApplication: (param: IParam) => void;
 }
 
-const years: Array<TSelectItem> = [
+export const years: Array<TSelectItem> = [
   {
     value: 'PLRY01',
     label: '1 year',

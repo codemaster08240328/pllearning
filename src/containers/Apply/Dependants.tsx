@@ -26,7 +26,7 @@ type TSelectItem = {
   label: string;
 };
 
-const numbers: Array<TSelectItem> = [
+export const numbers: Array<TSelectItem> = [
   {
     value: 'PLNOFD01',
     label: 'No Dependants',

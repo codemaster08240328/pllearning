@@ -2,14 +2,15 @@ import React from 'react';
 
 type IProps = {
   color?: string;
+  size?: string;
 };
 
-const CloseIcon: React.FC<IProps> = ({ color }) => {
+const CloseIcon: React.FC<IProps> = ({ color, size }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
+      width={size ? size : '24'}
+      height={size ? size : '24'}
       viewBox="0 0 24 24"
     >
       <defs>
@@ -22,7 +23,7 @@ const CloseIcon: React.FC<IProps> = ({ color }) => {
         <mask id="prefix__b_close" fill="#fff">
           <use href="#prefix__a_close" />
         </mask>
-        <use fill="#000" href="#prefix__a_close" />
+        <use fill={color ? color : '#000'} href="#prefix__a_close" />
         <g fill={color ? color : '#3A3A3A'} mask="url(#prefix__b_close)">
           <path d="M0 0L24 0 24 24 0 24z" transform="translate(-3 -3)" />
         </g>
