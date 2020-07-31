@@ -1,0 +1,27 @@
+@import '../../styles/base.scss';
+
+.mmk-great-news {
+  min-height: 100%;
+  background: color('gradient', 'sapphire');
+  text-align: center;
+  padding: 0 24px;
+
+  &-img {
+    display: flex;
+    justify-content: center;
+    padding-top: 72px;
+  }
+
+  &-button {
+    position: absolute;
+    bottom: 46px;
+    left: 24px;
+    right: 24px;
+  }
+}
+
+.btn-description {
+  margin-top: 16px;
+  font-size: font-size('xx-small');
+  color: $mmk-white;
+}

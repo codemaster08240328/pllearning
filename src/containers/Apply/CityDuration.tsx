@@ -63,7 +63,14 @@ const CityDuration: React.FC<StateProps & DispatchProps> = ({
   useEffect(() => {
     if (previousLoading) {
       if (type === 'short') {
-        history.push(`/apply/analyze/${type}`);
+        const salary =
+          plApplication.data.list.applicationDetails.netMonthlySalary;
+
+        if (parseInt(salary || '0') < 30000) {
+          history.push(`/apply/analyze/${type}`);
+        } else {
+          history.push(`/apply/15/${type}`);
+        }
       } else {
         history.push(`/apply/10`);
       }

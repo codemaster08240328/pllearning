@@ -4,7 +4,8 @@ import { Dispatch, bindActionCreators } from 'redux';
 import { useHistory, Link } from 'react-router-dom';
 import Button from 'components/Button';
 import Input from 'components/Input';
-import { CurrencyIcon, BackIcon } from 'components/Icons';
+import { CurrencyIcon, BackIcon, CloseIcon } from 'components/Icons';
+import { Modal } from 'components/Modal';
 import StepFlow from 'components/StepFlow';
 
 import { IPLAppData } from 'services/getPLApplication/types';
@@ -12,6 +13,10 @@ import { IParam } from 'services/saveApplication/types';
 import { ILoading } from 'redux/reducers/types';
 import { IPLAppState } from 'redux/reducers';
 import { saveApplication } from 'redux/actions/plApplication';
+
+import ErrorIconSmall from 'assets/error.png';
+import ErrorIconMedium from 'assets/error@2x.png';
+import ErrorIconLarge from 'assets/error@3x.png';
 
 import { usePrevious } from 'utitlity/helper';
 
@@ -28,16 +33,13 @@ const Salary: React.FC<StateProps & DispatchProps> = ({
   savePLApplication,
 }) => {
   const [salary, setSalary] = useState<string | undefined>(undefined);
+  const [openModal, setopenModal] = useState(false);
   const history = useHistory();
   const previousLoading = usePrevious(plApplication.loading);
 
   useEffect(() => {
     if (previousLoading) {
-      if (parseInt(salary || '0') >= 30000) {
-        history.push('/apply/5/long');
-      } else {
-        history.push('/apply/5/short');
-      }
+      history.push('/apply/5/short');
     }
 
     setSalary(
@@ -46,6 +48,23 @@ const Salary: React.FC<StateProps & DispatchProps> = ({
   }, [plApplication]);
 
   const onNext = () => {
+    const previousSalary =
+      plApplication.data.list.applicationDetails.netMonthlySalary;
+
+    if (
+      (parseInt(previousSalary || '0') >= 30000 &&
+        parseInt(salary || '0') < 30000) ||
+      (parseInt(previousSalary || '0') < 30000 &&
+        parseInt(salary || '0') >= 30000)
+    ) {
+      setopenModal(true);
+      return;
+    }
+    changeAnyway();
+  };
+
+  const changeAnyway = () => {
+    setopenModal(false);
     const param: IParam = {
       netMonthlySalary: salary || null,
     };
@@ -82,6 +101,40 @@ const Salary: React.FC<StateProps & DispatchProps> = ({
           />
         </div>
       </div>
+
+      {openModal && (
+        <Modal>
+          <div
+            onClick={() => setopenModal(false)}
+            className="mmk-company-modal-close"
+          >
+            <CloseIcon />
+          </div>
+          <div className="mmk-modal-content-img">
+            <img
+              width="72"
+              height="72"
+              src={ErrorIconSmall}
+              srcSet={`${ErrorIconMedium}, ${ErrorIconLarge}`}
+            />
+          </div>
+          <h3 className="mmk-modal-content-title">Are you sure?</h3>
+          <div className="mmk-modal-content-desc">
+            You might lose your previous offer if you change this information
+          </div>
+
+          <div className="mt-24 mb-16 mmk-bank-salary-modal-gold-loan">
+            <Button text="CANCEL" onClick={() => setopenModal(false)} />
+          </div>
+          <div
+            className="mb-24 color-text-blue-dark"
+            style={{ letterSpacing: '2px', textAlign: 'center' }}
+            onClick={changeAnyway}
+          >
+            CHANGE ANYWAY
+          </div>
+        </Modal>
+      )}
     </>
   );
 };

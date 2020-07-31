@@ -39,3 +39,70 @@
     margin-right: 8px;
   }
 }
+
+.app-summary-checkbox {
+  display: flex;
+  margin-top: 24px;
+  padding: 0 12px;
+  text-align: left;
+
+  label {
+    @include font('Open Sans');
+    margin-left: 8px;
+
+    position: relative;
+    min-height: 34px;
+    display: block;
+    padding-left: 24px;
+    margin-bottom: 0;
+    font-weight: normal;
+    cursor: pointer;
+
+    &:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      margin: 1px;
+      width: 16px;
+      height: 16px;
+      transition: transform 0.28s ease;
+      border-radius: 3px;
+      border: 1px solid $mmk-light-grey;
+    }
+
+    &:after {
+      content: '';
+      display: block;
+      width: 10px;
+      height: 5px;
+      border-bottom: 2px solid $mmk-white;
+      border-left: 2px solid $mmk-white;
+      transform: rotate(-45deg) scale(0);
+      transition: transform ease 0.25s;
+      position: absolute;
+      top: 5px;
+      left: 4px;
+    }
+  }
+}
+
+input[type='checkbox'] {
+  width: auto;
+  opacity: 0.00000001;
+  position: absolute;
+  left: 0;
+  margin-left: -20px;
+  &:checked ~ label {
+    &:before {
+      background-color: $mmk-green;
+      border-color: $mmk-green;
+    }
+    &:after {
+      transform: rotate(-45deg) scale(1);
+    }
+  }
+  &:focus + label::before {
+    outline: 0;
+  }
+}

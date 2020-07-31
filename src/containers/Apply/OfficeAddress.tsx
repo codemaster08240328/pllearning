@@ -71,7 +71,8 @@ const OfficeAddress: React.FC<StateProps & DispatchProps> = ({
 
   useEffect(() => {
     if (previousLoading) {
-      history.push('/apply/15/long');
+      // history.push('/apply/15/long');
+      history.push('/loan-faster');
     }
 
     setPin(
@@ -108,6 +109,18 @@ const OfficeAddress: React.FC<StateProps & DispatchProps> = ({
   };
 
   const onNext = () => {
+    const previousPin =
+      plApplication.data.list.addressInformationDetails.filter(
+        (item) => item.addressType === 'OFFICE' && item.isActive === 1
+      )[0]?.zipCode || '';
+
+    if (previousPin === pin) {
+      // history.push('/apply/15/long');
+      history.push('/loan-faster');
+
+      return;
+    }
+
     if (pinCodeValidation(pin)) {
       const param: IParam = {
         addressInformation: [

@@ -13,8 +13,8 @@ const Analyze = () => {
   // }, 10000);
 
   setTimeout(() => {
-    history.push(`/apply/15/${type}`);
-  }, 10000);
+    history.push(`/application-sorry`);
+  }, 5000);
 
   const lottieOption = {
     loop: true,

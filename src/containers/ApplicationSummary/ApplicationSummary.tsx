@@ -21,6 +21,8 @@ import { years as addressDuration } from '../Apply/AddressDuration';
 import { docuTypes } from '../Apply/UploadDocu';
 
 import './ApplicationSummary.scss';
+import { createLeadAtBank } from 'services/createLeadAtBank/service';
+import { submitPLOnline } from 'services/submitPLOnline/service';
 
 interface StateProps {
   plApplication: IPLAppData & ILoading;
@@ -28,6 +30,7 @@ interface StateProps {
 
 const ApplicationSummary: React.FC<StateProps> = ({ plApplication }) => {
   const [documents, setDocuments] = useState<Array<TDocumentInfo>>([]);
+  const [isChecked, setIsChecked] = useState<boolean>(false);
   const history = useHistory();
   const { type } = useParams<TRouterParam>();
 
@@ -275,6 +278,18 @@ const ApplicationSummary: React.FC<StateProps> = ({ plApplication }) => {
     return <Table fields={fields} />;
   };
 
+  const onNext = () => {
+    const appID = plApplication.data.list.appID;
+    if (checkDisable()) {
+      createLeadAtBank(appID?.toString() || '');
+      history.push('/application-pending');
+      return;
+    }
+
+    submitPLOnline(appID?.toString() || '');
+    history.push('/application-approved');
+  };
+
   const checkDisable = () => {
     let res = false;
 
@@ -286,6 +301,16 @@ const ApplicationSummary: React.FC<StateProps> = ({ plApplication }) => {
     });
 
     return res;
+  };
+
+  const isDisable = () => {
+    if (checkDisable()) {
+      return false;
+    } else if (isChecked) {
+      return false;
+    }
+
+    return true;
   };
 
   return (
@@ -308,6 +333,24 @@ const ApplicationSummary: React.FC<StateProps> = ({ plApplication }) => {
           {renderDocumentTable()}
         </div>
 
+        {!checkDisable() && (
+          <div className="app-summary-checkbox">
+            <input
+              type="checkbox"
+              id="checkbox"
+              checked={isChecked}
+              onChange={() => setIsChecked(!isChecked)}
+            />
+            <label htmlFor="checkbox">
+              By clicking on the button, you acknowledge that your application
+              will be sent to HDFC Bank and that the bank will request your
+              credit score from the credit bureau. This can negatively affect
+              your credit score. Incorrect information will lead to rejection of
+              your application.
+            </label>
+          </div>
+        )}
+
         <div className="application-summary-action">
           {checkDisable() && (
             <Button
@@ -317,7 +360,20 @@ const ApplicationSummary: React.FC<StateProps> = ({ plApplication }) => {
               type="ghost"
             />
           )}
-          <Button text="GET MY LOAN OFFER" />
+          {!checkDisable() && (
+            <Button
+              text="SUBMIT MY APPLICATION"
+              onClick={onNext}
+              disabled={isDisable()}
+            />
+          )}
+          {checkDisable() && (
+            <Button
+              text="GET MY LOAN OFFER"
+              onClick={onNext}
+              disabled={isDisable()}
+            />
+          )}
         </div>
       </div>
     </div>

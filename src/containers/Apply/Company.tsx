@@ -6,7 +6,7 @@ import Button from 'components/Button';
 import { AlertIcon, ArrowIcon, CloseIcon, BackIcon } from 'components/Icons';
 import Select from 'components/Select';
 import { TOption } from 'components/Select/types';
-import { BottomModal } from 'components/Modal';
+import { BottomModal, Modal } from 'components/Modal';
 import StepFlow from 'components/StepFlow';
 import { TRouterParam } from './types';
 
@@ -17,6 +17,10 @@ import { IParam } from 'services/saveApplication/types';
 import { ILoading } from 'redux/reducers/types';
 import { IPLAppState } from 'redux/reducers';
 import { saveApplication } from 'redux/actions/plApplication';
+
+import ErrorIconSmall from 'assets/error.png';
+import ErrorIconMedium from 'assets/error@2x.png';
+import ErrorIconLarge from 'assets/error@3x.png';
 
 import { usePrevious } from 'utitlity/helper';
 
@@ -47,26 +51,28 @@ const Company: React.FC<StateProps & DispatchProps> = ({
   const [company, setCompany] = useState<TOption | undefined>(undefined);
   const [companyType, setCompanyType] = useState<string | undefined>(undefined);
   const [modalOpen, setModalOpen] = useState(false);
+  const [openModal, setopenModal] = useState(false);
   const [options, setoptions] = useState<Array<TOption>>([]);
   const history = useHistory();
-  const { type } = useParams<TRouterParam>();
 
   const previousLoading = usePrevious(plApplication.loading);
 
   useEffect(() => {
     if (previousLoading) {
-      history.push(`/apply/6/${type}`);
+      history.push(`/apply/6/short`);
     }
 
-    !!plApplication.data.list.applicationDetails.employerName &&
+    if (!!plApplication.data.list.applicationDetails.employerName) {
       setCompany({
-        value:
-          plApplication.data.list.applicationDetails.employerName ==
-          noMatchOption.label
-            ? 'none'
-            : plApplication.data.list.applicationDetails.employerName || '',
-        label: plApplication.data.list.applicationDetails.employerName || '',
+        value: plApplication.data.list.applicationDetails.employerName,
+        label: plApplication.data.list.applicationDetails.employerName,
       });
+    } else if (!!plApplication.data.list.applicationDetails.organizationType) {
+      setCompany({
+        value: noMatchOption.value,
+        label: noMatchOption.label,
+      });
+    }
 
     setCompanyType(
       plApplication.data.list.applicationDetails.organizationType || undefined
@@ -84,8 +90,27 @@ const Company: React.FC<StateProps & DispatchProps> = ({
   };
 
   const onNext = () => {
+    const previousEmployerName =
+      plApplication.data.list.applicationDetails.employerName;
+
+    if (
+      (previousEmployerName === '' && company?.label !== noMatchOption.label) ||
+      (previousEmployerName !== '' && company?.label === noMatchOption.label)
+    ) {
+      setopenModal(true);
+      return;
+    }
+    changeAnyway();
+  };
+
+  const changeAnyway = () => {
+    setopenModal(false);
     const param: IParam = {
-      employerName: company?.label || null,
+      employerName: company
+        ? company.value === noMatchOption.value
+          ? ''
+          : company.label
+        : null,
       organizationType: companyType || null,
     };
 
@@ -105,7 +130,7 @@ const Company: React.FC<StateProps & DispatchProps> = ({
       <Link to={'/apply/4'} className="go-back">
         <BackIcon size={24} />
       </Link>
-      <StepFlow total={type === 'short' ? 10 : 15} step={5} />
+      <StepFlow total={10} step={5} />
       <div className="mmk-loan-apply-content-wrapper">
         <h3 className="color-text-blue-dark">Which company do you work for?</h3>
         <div className="mt-16">
@@ -187,6 +212,39 @@ const Company: React.FC<StateProps & DispatchProps> = ({
               ))}
             </div>
           </BottomModal>
+        )}
+        {openModal && (
+          <Modal>
+            <div
+              onClick={() => setopenModal(false)}
+              className="mmk-company-modal-close"
+            >
+              <CloseIcon />
+            </div>
+            <div className="mmk-modal-content-img">
+              <img
+                width="72"
+                height="72"
+                src={ErrorIconSmall}
+                srcSet={`${ErrorIconMedium}, ${ErrorIconLarge}`}
+              />
+            </div>
+            <h3 className="mmk-modal-content-title">Are you sure?</h3>
+            <div className="mmk-modal-content-desc">
+              You might lose your previous offer if you change this information
+            </div>
+
+            <div className="mt-24 mb-16 mmk-bank-salary-modal-gold-loan">
+              <Button text="CANCEL" onClick={() => setopenModal(false)} />
+            </div>
+            <div
+              className="mb-24 color-text-blue-dark"
+              style={{ letterSpacing: '2px' }}
+              onClick={changeAnyway}
+            >
+              CHANGE ANYWAY
+            </div>
+          </Modal>
         )}
       </div>
     </>

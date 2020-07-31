@@ -55,7 +55,6 @@ const BankSalary: React.FC<StateProps & DispatchProps> = ({
   const [bankListOptions, setbankListOptions] = useState<Array<TOption>>([]);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [openAccountModal, setopenAccountModal] = useState(false);
-  const { type } = useParams<TRouterParam>();
 
   const history = useHistory();
 
@@ -63,7 +62,23 @@ const BankSalary: React.FC<StateProps & DispatchProps> = ({
 
   useEffect(() => {
     if (previousLoading) {
-      history.push(`/apply/7/${type}`);
+      const salaryAmt =
+        plApplication.data.list.applicationDetails.netMonthlySalary;
+
+      const companyName =
+        plApplication.data.list.applicationDetails.employerName;
+
+      const isFintechEligible = plApplication.data.list.isFintechEligibility;
+
+      if (isFintechEligible === 'Y') {
+        if (parseInt(salaryAmt || '0') >= 30000 && companyName !== '') {
+          history.push(`/application-greatnews`);
+        } else {
+          history.push(`/apply/7/short`);
+        }
+      } else {
+        history.push(`/apply/7/short`);
+      }
     }
 
     setBank(plApplication.data.list.applicationDetails.salaryCreditBank || '');
@@ -80,24 +95,23 @@ const BankSalary: React.FC<StateProps & DispatchProps> = ({
     if (bank !== bankItems[0].key) {
       setopenAccountModal(true);
     } else {
-      saveChangedApplication();
+      saveChangedApplication('1');
     }
   };
 
   const onYes = () => {
-    // TODO: which endpoint do I need to use to answer to the question: 'Do you hav a savings account with HDFC?'
-    saveChangedApplication();
+    saveChangedApplication('1');
   };
 
   const onNo = () => {
-    // TODO: which endpoint do I need to use to answer to the question: 'Do you hav a savings account with HDFC?'
-    saveChangedApplication();
+    saveChangedApplication('0');
   };
 
-  const saveChangedApplication = () => {
+  const saveChangedApplication = (hdfc: string) => {
     const param: IParam = {
       salaryCreditBank: bank || null,
       salaryCreditedBankType: bankType || null,
+      hdfcSavingsAccount: hdfc,
     };
 
     savePLApplication(param);
@@ -116,10 +130,10 @@ const BankSalary: React.FC<StateProps & DispatchProps> = ({
 
   return (
     <>
-      <Link to={`/apply/5/${type}`} className="go-back">
+      <Link to={`/apply/5/short`} className="go-back">
         <BackIcon size={24} />
       </Link>
-      <StepFlow total={type === 'short' ? 10 : 15} step={6} />
+      <StepFlow total={10} step={6} />
       <div className="mmk-loan-apply-content-wrapper">
         <h3 className="color-text-blue-dark">
           Which bank did you receive your salary in?

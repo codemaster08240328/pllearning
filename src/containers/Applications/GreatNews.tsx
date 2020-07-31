@@ -1,4 +1,5 @@
 import React from 'react';
+import { useHistory } from 'react-router';
 import Button from 'components/Button';
 
 import SmallFasterImg from 'assets/faster.png';
@@ -8,6 +9,7 @@ import LargeFasterImg from 'assets/faster@3x.png';
 import './GreatNews.scss';
 
 const GreatNews = () => {
+  const history = useHistory();
   return (
     <div className="mmk-great-news">
       <div className="mmk-great-news-img">
@@ -28,7 +30,11 @@ const GreatNews = () => {
       </div>
 
       <div className="mmk-great-news-button">
-        <Button text="CONTINUE" type="secondary" />
+        <Button
+          text="CONTINUE"
+          type="secondary"
+          onClick={() => history.push('/apply/7/long')}
+        />
       </div>
     </div>
   );

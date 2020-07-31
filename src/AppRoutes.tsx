@@ -6,7 +6,6 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import HomePage from 'containers/Home/HomePage';
 import ApplyRouter from 'containers/Apply/ApplyRoutes';
 import Analyze from 'containers/Apply/Analyze';
-import HardWork from 'containers/HardWork/HardWork';
 import ApplicationSaved from 'containers/ApplicationSaved/ApplicationSaved';
 import ApplicationSummary from 'containers/ApplicationSummary/ApplicationSummary';
 import GreatNews from 'containers/Applications/GreatNews';
@@ -17,6 +16,9 @@ import { IPLAppData } from 'services/getPLApplication/types';
 import { ILoading } from 'redux/reducers/types';
 
 import { fetchApplication } from 'redux/actions/plApplication';
+import GetLoanFaster from 'containers/Applications/GetLoanFaster';
+import ApplicationApproved from 'containers/HardWork/ApplicationApproved';
+import ApplicationPending from 'containers/HardWork/ApplicationPending';
 
 interface StateProps {
   plApplication: IPLAppData & ILoading;
@@ -41,7 +43,18 @@ const AppRouter: React.FC<StateProps & DispatchProps> = ({
         <Route path="/apply">
           <ApplyRouter />
         </Route>
-        <Route path="/hardwork" exact component={HardWork} />
+        <Route
+          path="/application-approved"
+          exact
+          component={ApplicationApproved}
+        />
+
+        <Route
+          path="/application-pending"
+          exact
+          component={ApplicationPending}
+        />
+
         <Route path="/application-saved" exact component={ApplicationSaved} />
         <Route
           path="/application-summary/:type"
@@ -50,6 +63,7 @@ const AppRouter: React.FC<StateProps & DispatchProps> = ({
         />
         <Route path="/application-greatnews" exact component={GreatNews} />
         <Route path="/application-sorry" exact component={Sorry} />
+        <Route path="/loan-faster" exact component={GetLoanFaster} />
       </Switch>
     </BrowserRouter>
   );

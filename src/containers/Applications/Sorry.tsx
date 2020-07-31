@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 import { MenuIcon } from 'components/Icons';
 import Footer from 'components/Footer';
@@ -10,7 +11,9 @@ const Sorry = () => {
   return (
     <div className="application-sorry">
       <div className="application-sorry-top-section">
-        <h3 className="color-text-white font-calibri-bold">mymoneykarma</h3>
+        <Link to="/">
+          <h3 className="color-text-white font-calibri-bold">mymoneykarma</h3>
+        </Link>
         <MenuIcon size={24} />
       </div>
       <div className="application-sorry-content">

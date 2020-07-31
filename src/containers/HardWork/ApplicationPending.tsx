@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { MenuIcon } from '../../components/Icons';
-import BannerImg from '../../assets/applied.png';
-import BannerImg2 from '../../assets/applied@2x.png';
-import BannerImg3 from '../../assets/applied@3x.png';
+import BannerImg from '../../assets/sending.png';
+import BannerImg2 from '../../assets/sending@2x.png';
+import BannerImg3 from '../../assets/sending@3x.png';
 import './HardWork.scss';
 import Button from '../../components/Button';
 import Footer from '../../components/Footer';
 
-const HardWork = () => {
+const ApplicationPending = () => {
   const prevScrollY = useRef(0);
   const [goingUp, setGoingUp] = useState(false);
   const [currentScrollY, setCurrentScrollY] = useState(0);
@@ -43,29 +43,25 @@ const HardWork = () => {
             : 'hardwork-top-section'
         }
       >
-        <h3 className="color-text-white font-calibri-bold">mymoneykarma</h3>
+        <Link to="/">
+          <h3 className="color-text-white font-calibri-bold">mymoneykarma</h3>
+        </Link>
         <MenuIcon size={24} />
       </div>
       <div className="hardwork-content">
         <div className="hardwork-content-banner">
           <img src={BannerImg} alt="" srcSet={`${BannerImg2}, ${BannerImg3}`} />
-          <h3 className="mt-24 color-text-white">Hardwork pays!</h3>
+          <h3 className="mt-24 color-text-white">Application Received!</h3>
           <div className="hardwork-content-banner-desc">
-            HDFC can approve a loan of Rs 150,000 for EMI starting at Rs 4,561.
-            <br />
-            <br />A loan specialist will call for further details within 1
-            business day.
+            A loan specialist will call you within 1 day to take your
+            application forward. Please accept the call.
           </div>
         </div>
 
         <div className="hardwork-content-button">
-          <Link to="/loan/1">
-            <Button text="GET LOAN FASTER" type="secondary" />
+          <Link to="/">
+            <Button text="BACK TO HOME" type="transparent" />
           </Link>
-        </div>
-        <div className="hardwork-content-decision">
-          Get decision within 4 hours by answering only 4 more questions in less
-          than 2 mins.
         </div>
       </div>
       <Footer />
@@ -73,4 +69,4 @@ const HardWork = () => {
   );
 };
 
-export default HardWork;
+export default ApplicationPending;

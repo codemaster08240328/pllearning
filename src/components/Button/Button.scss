@@ -71,3 +71,11 @@
     background-color: $mmk-super-light-grey;
   }
 }
+
+.transparent-button {
+  background-color: transparent;
+  border-color: $mmk-white;
+  color: $mmk-white;
+  border-style: solid;
+  border-width: 1px;
+}

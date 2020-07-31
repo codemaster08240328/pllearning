@@ -20,7 +20,7 @@ import { IPLAppData } from 'services/getPLApplication/types';
 import { IParam } from 'services/saveApplication/types';
 import { ILoading } from 'redux/reducers/types';
 import { IPLAppState } from 'redux/reducers';
-import { saveApplication, addAddress } from 'redux/actions/plApplication';
+import { addAddress } from 'redux/actions/plApplication';
 import { TRouterParam } from './types';
 import { getPINCodeDetail } from 'services/getPINCodeDetails/service';
 
@@ -72,39 +72,33 @@ const getPINCodeList = (addressList: Array<TAddressDetail>) => {
     (address) => address.addressType === 'RESIDENCE'
   );
 
-  return res.map((item) => item.zipCode);
+  return res
+    .map((item) => item.zipCode)
+    .filter((v, i, a) => a.indexOf(v) === i);
 };
 
 const Address: React.FC<StateProps & DispatchProps> = ({
   plApplication,
   addPLAddress,
 }) => {
-  const [openModal, setOpenModal] = useState<boolean>(true);
+  const [openPinModal, setOpenPinModal] = useState<boolean>(true);
   const [pin, setPin] = useState<string | null>('');
-  const [pinInput, setPinInput] = useState<string | null>('');
-  const [enterPin, setEnterPin] = useState<boolean>(false);
-  const [address, setAddress] = useState<TAddressDetail>({
-    city: '',
-    state: '',
-    addressLine1: '',
-    addressLine2: '',
-    zipCode: '',
-    isActive: 0,
-    source: '',
-    seqNo: 0,
-    addressType: 'RESIDENCE',
-  });
-  const [openAddressDetail, setOpenAddressDetail] = useState<boolean>(false);
-  const [validPin, setvalidPin] = useState(true);
-  const [pinFound, setpinFound] = useState(true);
-  const [openNewAddModal, setopenNewAddModal] = useState(false);
-  const [flat, setflat] = useState('');
-  const [street, setstreet] = useState('');
-  const [pinCodeList, setpinCodeList] = useState<Array<string | null>>([]);
-  const [addressList, setaddressList] = useState<Array<TAddressDetail>>([]);
+  const [newPin, setNewPin] = useState<boolean>(false);
+  const [newAddress, setNewAddress] = useState<boolean>(false);
+  const [addressLine1, setAddressLine1] = useState('');
+  const [addressLine2, setAddressLine2] = useState('');
 
   const [city, setcity] = useState<string>('');
   const [state, setstate] = useState<string>('');
+  const [validPin, setvalidPin] = useState(true);
+  const [pinFound, setpinFound] = useState(true);
+  const [openNewAddModal, setopenNewAddModal] = useState(false);
+  const [pinCodeList, setpinCodeList] = useState<Array<string | null>>([]);
+
+  const [addressList, setaddressList] = useState<Array<TAddressDetail>>([]);
+  const [selectedAddressNo, setSelectedAddressNo] = useState<number | null>(
+    null
+  );
 
   const history = useHistory();
   const { type } = useParams<TRouterParam>();
@@ -122,13 +116,12 @@ const Address: React.FC<StateProps & DispatchProps> = ({
       )[0]?.zipCode || '';
 
     setPin(pinCode || '');
-    setPinInput(pinCode || '');
     setpinCodeList(
       getPINCodeList(plApplication.data.list.addressInformationDetails)
     );
 
     if (!!pinCode) {
-      setOpenModal(false);
+      setOpenPinModal(false);
 
       const list =
         plApplication.data.list.addressInformationDetails.filter(
@@ -136,7 +129,12 @@ const Address: React.FC<StateProps & DispatchProps> = ({
             address.zipCode === pinCode && address.addressType === 'RESIDENCE'
         ) || [];
 
-      console.log(list);
+      list.forEach((item) => {
+        if (item.isActive === 1) {
+          console.log('called');
+          setSelectedAddressNo(item.seqNo);
+        }
+      });
 
       setaddressList(list);
     }
@@ -164,7 +162,6 @@ const Address: React.FC<StateProps & DispatchProps> = ({
     if (value.length > 6) return;
 
     setvalidPin(true);
-    setOpenAddressDetail(true);
     setPin(value);
 
     if (value.length === 6) {
@@ -173,6 +170,7 @@ const Address: React.FC<StateProps & DispatchProps> = ({
         setpinFound(false);
         return;
       }
+
       setpinFound(true);
       setcity(res.data.city || '');
       setstate(res.data.state || '');
@@ -180,8 +178,7 @@ const Address: React.FC<StateProps & DispatchProps> = ({
   };
 
   const onSelectPin = (item: string | null) => {
-    console.log(item);
-    setPinInput(item);
+    setNewPin(false);
     setPin(item);
 
     setaddressList(
@@ -191,21 +188,7 @@ const Address: React.FC<StateProps & DispatchProps> = ({
       ) || []
     );
 
-    setAddress({
-      city: '',
-      state: '',
-      addressLine1: '',
-      addressLine2: '',
-      zipCode: '',
-      isActive: 0,
-      source: '',
-      seqNo: 0,
-      addressType: '',
-    });
-
-    setEnterPin(false);
-    setOpenAddressDetail(false);
-    setTimeout(() => setOpenModal(false), 100);
+    setTimeout(() => setOpenPinModal(false), 100);
   };
 
   const onNext = () => {
@@ -214,71 +197,90 @@ const Address: React.FC<StateProps & DispatchProps> = ({
       return;
     }
 
-    let param: IParam = {};
-
-    console.log(enterPin);
-
-    if (!enterPin) {
-      console.log(addressList);
-      param = {
+    if (newPin) {
+      const param: IParam = {
         addressInformation: [
-          ...plApplication.data.list.addressInformationDetails.filter(
-            (item) => item.addressType !== 'RESIDENCE'
-          ),
-          ...addressList,
-        ],
-      };
-    } else {
-      param = {
-        addressInformation: [
-          ...plApplication.data.list.addressInformationDetails.map((item) => {
-            if (item.addressType === 'RESIDENCE') {
-              return {
-                addressLine1: item.addressLine1,
-                addressLine2: item.addressLine2,
-                seqNo: item.seqNo,
-                city: item.city,
-                state: item.state,
-                addressType: item.addressType,
-                zipCode: item.zipCode,
-                source: item.source,
-                isActive: 0,
-              };
+          ...plApplication.data.list.addressInformationDetails.map(
+            (address) => {
+              if (address.addressType === 'RESIDENCE') {
+                address.isActive = 0;
+              }
+
+              return address;
             }
-
-            return item;
-          }),
+          ),
           {
             zipCode: pin,
-            addressLine1: flat,
-            addressLine2: street,
             city: city,
             state: state,
+            addressLine1: addressLine1,
+            addressLine2: addressLine2,
+            seqNo: -new Date().getTime(),
+            addressType: 'RESIDENCE',
             isActive: 1,
             source: 'CUSTINPUT',
-            addressType: 'RESIDENCE',
-            seqNo: -new Date().getTime(),
           },
         ],
       };
+
+      addPLAddress(param);
+    } else if (newAddress) {
+      const param: IParam = {
+        addressInformation: [
+          ...plApplication.data.list.addressInformationDetails.map(
+            (address) => {
+              if (address.addressType === 'RESIDENCE') {
+                address.isActive = 0;
+              }
+
+              return address;
+            }
+          ),
+          {
+            zipCode: pin,
+            city,
+            state,
+            addressLine1,
+            addressLine2,
+            seqNo: -1,
+            addressType: 'RESIDENCE',
+            isActive: 1,
+            source: 'CUSTINPUT',
+          },
+        ],
+      };
+
+      addPLAddress(param);
+    } else {
+      const param: IParam = {
+        addressInformation: [
+          ...plApplication.data.list.addressInformationDetails.map(
+            (address) => {
+              if (
+                address.addressType === 'RESIDENCE' &&
+                address.seqNo !== selectedAddressNo
+              ) {
+                address.isActive = 0;
+              } else if (address.addressType === 'RESIDENCE') {
+                address.isActive = 1;
+              }
+
+              return address;
+            }
+          ),
+        ],
+      };
+
+      addPLAddress(param);
     }
-
-    console.log(param);
-
-    addPLAddress(param);
   };
 
   const checkDisabled = () => {
-    let res = !!pinInput && !enterPin;
+    if (newPin) {
+      return !pin || !addressLine1 || !addressLine2;
+    }
 
-    res =
-      res ||
-      (!!pin &&
-        !!address.city &&
-        !!address.state &&
-        !!address.addressLine1 &&
-        !!address.addressLine2);
-    return !res;
+    return !pin || !selectedAddressNo;
   };
 
   return (
@@ -294,11 +296,16 @@ const Address: React.FC<StateProps & DispatchProps> = ({
         </div>
         <div
           className="mmk-company-type mt-8"
-          onClick={() => setOpenModal(!openModal)}
+          onClick={() => setOpenPinModal(!openPinModal)}
         >
           <div>
-            <span className="mmk-company-type-value">{pinInput}</span>
-            {!pinInput && (
+            {pin && !newPin && (
+              <span className="mmk-company-type-value">{pin}</span>
+            )}
+            {newPin && (
+              <span className="mmk-company-type-value">Add new PIN code</span>
+            )}
+            {!pin && !newPin && (
               <span className="mmk-company-type-placeholder">
                 Select your PIN code
               </span>
@@ -308,7 +315,7 @@ const Address: React.FC<StateProps & DispatchProps> = ({
             <ArrowIcon direction="down" />
           </div>
         </div>
-        {enterPin && (
+        {newPin && (
           <>
             <div
               className="mt-16 mb-8"
@@ -327,7 +334,7 @@ const Address: React.FC<StateProps & DispatchProps> = ({
             </div>
           </>
         )}
-        {openAddressDetail && pinFound && (
+        {pin && newPin && pinFound && (
           <>
             <div
               className="mt-16 mb-8"
@@ -340,9 +347,9 @@ const Address: React.FC<StateProps & DispatchProps> = ({
                 <Input
                   value={
                     index === 0
-                      ? flat
+                      ? addressLine1
                       : index === 1
-                      ? street
+                      ? addressLine2
                       : index === 2
                       ? city
                       : state
@@ -351,21 +358,21 @@ const Address: React.FC<StateProps & DispatchProps> = ({
                   placeholder={item.placeholder}
                   onChange={(value) => {
                     if (index === 0) {
-                      setflat(value);
+                      setAddressLine1(value);
                     } else {
-                      setstreet(value);
+                      setAddressLine2(value);
                     }
-                    setAddress({
-                      city: city,
-                      state: state,
-                      zipCode: pin,
-                      addressType: 'RESIDENCE',
-                      seqNo: new Date().getTime(),
-                      addressLine1: index === 0 ? value : flat,
-                      addressLine2: index === 1 ? value : street,
-                      source: 'CUSTINPUT',
-                      isActive: 0,
-                    });
+                    // setAddress({
+                    //   city: city,
+                    //   state: state,
+                    //   zipCode: pin,
+                    //   addressType: 'RESIDENCE',
+                    //   seqNo: new Date().getTime(),
+                    //   addressLine1: index === 0 ? value : flat,
+                    //   addressLine2: index === 1 ? value : street,
+                    //   source: 'CUSTINPUT',
+                    //   isActive: 0,
+                    // });
                   }}
                 />
               </div>
@@ -373,10 +380,10 @@ const Address: React.FC<StateProps & DispatchProps> = ({
           </>
         )}
 
-        {openAddressDetail && !pinFound && (
+        {newPin && pin && !pinFound && (
           <div className="pin-notfound">Pincode not found</div>
         )}
-        {!!pinInput && !enterPin && (
+        {!newPin && pin && (
           <>
             <div className="mt-24" style={{ width: '100%', textAlign: 'left' }}>
               <label>Select your current address</label>
@@ -386,46 +393,57 @@ const Address: React.FC<StateProps & DispatchProps> = ({
                 className="mmk-address-item"
                 key={index.toString()}
                 onClick={() => {
-                  setaddressList([
-                    ...addressList.map((item) => {
-                      if (item.seqNo === address.seqNo) {
-                        return {
-                          addressLine1: item.addressLine1,
-                          addressLine2: item.addressLine2,
-                          seqNo: item.seqNo,
-                          city: item.city,
-                          state: item.state,
-                          addressType: item.addressType,
-                          zipCode: item.zipCode,
-                          source: item.source,
-                          isActive: 1,
-                        };
-                      }
-                      return {
-                        addressLine1: item.addressLine1,
-                        addressLine2: item.addressLine2,
-                        seqNo: item.seqNo,
-                        city: item.city,
-                        state: item.state,
-                        addressType: item.addressType,
-                        zipCode: item.zipCode,
-                        source: item.source,
-                        isActive: 0,
-                      };
-                    }),
-                  ]);
+                  setNewPin(false);
+                  setNewAddress(false);
+                  setSelectedAddressNo(address.seqNo);
+                  // setaddressList([
+                  //   // ...addressList.map((item) => {
+                  //   //   // if (item.seqNo === address.seqNo) {
+                  //   //   //   return {
+                  //   //   //     addressLine1: item.addressLine1,
+                  //   //   //     addressLine2: item.addressLine2,
+                  //   //   //     seqNo: item.seqNo,
+                  //   //   //     city: item.city,
+                  //   //   //     state: item.state,
+                  //   //   //     addressType: item.addressType,
+                  //   //   //     zipCode: item.zipCode,
+                  //   //   //     source: item.source,
+                  //   //   //     isActive: 1,
+                  //   //   //   };
+                  //   //   // }
+                  //   //   // return {
+                  //   //   //   addressLine1: item.addressLine1,
+                  //   //   //   addressLine2: item.addressLine2,
+                  //   //   //   seqNo: item.seqNo,
+                  //   //   //   city: item.city,
+                  //   //   //   state: item.state,
+                  //   //   //   addressType: item.addressType,
+                  //   //   //   zipCode: item.zipCode,
+                  //   //   //   source: item.source,
+                  //   //   //   isActive: 0,
+                  //   //   // };
+                  //   // }),
+                  // ]);
                 }}
               >
                 <div className="mmk-address-item-text">{`${address.addressLine1}, ${address.addressLine2}, ${address.city}, ${address.state}, ${address.zipCode}`}</div>
                 <CircledCheckIcon
-                  color={address.isActive === 1 ? '#37d47e' : '#e2e2e2'}
-                  checked={address.isActive === 1}
+                  color={
+                    address.seqNo === selectedAddressNo ? '#37d47e' : '#e2e2e2'
+                  }
+                  checked={address.seqNo === selectedAddressNo}
                 />
               </div>
             ))}
             <div
               className="mmk-address-add"
-              onClick={() => setopenNewAddModal(true)}
+              onClick={() => {
+                setopenNewAddModal(true);
+                setNewAddress(true);
+                setNewPin(false);
+                setcity(getAddressInfoFromPIN(pin || '').city);
+                setstate(getAddressInfoFromPIN(pin || '').state);
+              }}
             >
               <h6>ADD NEW ADDRESS</h6>
               <CircledPlusIcon color="#3ba3ff" />
@@ -441,10 +459,10 @@ const Address: React.FC<StateProps & DispatchProps> = ({
             loading={plApplication.loading}
           />
         </div>
-        {openModal && (
+        {openPinModal && (
           <BottomModal>
             <div
-              onClick={() => setOpenModal(false)}
+              onClick={() => setOpenPinModal(false)}
               className="mmk-company-modal-close"
             >
               <CloseIcon />
@@ -463,9 +481,9 @@ const Address: React.FC<StateProps & DispatchProps> = ({
               <div
                 onClick={() => {
                   setPin(null);
-                  setEnterPin(true);
-                  setPinInput('Add new PIN code');
-                  setTimeout(() => setOpenModal(false), 100);
+                  setNewPin(true);
+                  setNewAddress(false);
+                  setTimeout(() => setOpenPinModal(false), 100);
                 }}
                 className="mmk-loan-duration-item"
               >
@@ -484,50 +502,41 @@ const Address: React.FC<StateProps & DispatchProps> = ({
             </div>
             <h3 className="mmk-company-modal-title">Add new address</h3>
             <h6 className="mt-16">{pin}</h6>
-            <span className="mmk-address-modal-city">
-              {getAddressInfoFromPIN(pin || '').city}
-            </span>
+            <span className="mmk-address-modal-city">{city}</span>
             <div className="mmk-company-modal-types">
               <Input
                 placeholder="Flat number, floor, building"
                 className="mt-24"
-                onChange={(flat) => setflat(flat)}
+                onChange={(flat) => setAddressLine1(flat)}
               />
               <Input
                 placeholder="Street name, number"
-                onChange={(street) => setstreet(street)}
+                onChange={(street) => setAddressLine2(street)}
                 className="mt-16"
               />
               <Button
                 text="ADD THIS ADDRESS"
                 className="mt-16 mb-32"
-                disabled={!street || !flat}
+                disabled={newPin && (!addressLine1 || !addressLine2)}
                 onClick={() => {
                   setaddressList([
-                    ...addressList.map((address) => ({
-                      addressLine1: address.addressLine1,
-                      addressLine2: address.addressLine2,
-                      seqNo: address.seqNo,
-                      city: address.city,
-                      state: address.state,
-                      addressType: address.addressType,
-                      zipCode: address.zipCode,
-                      source: address.source,
-                      isActive: 0,
-                    })),
+                    ...addressList,
                     {
-                      addressLine1: flat,
-                      addressLine2: street,
-                      seqNo: -new Date().getTime(),
-                      city: getAddressInfoFromPIN(pin || '').city || '',
-                      state: getAddressInfoFromPIN(pin || '').state || '',
+                      addressLine1,
+                      addressLine2,
+                      seqNo: -1,
+                      city,
+                      state,
                       zipCode: pin,
                       addressType: 'RESIDENCE',
                       isActive: 1,
                       source: 'CUSTINPUT',
                     },
                   ]);
+
+                  setSelectedAddressNo(-1);
                   setopenNewAddModal(false);
+                  onNext();
                 }}
               />
             </div>

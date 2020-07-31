@@ -363,7 +363,7 @@ const UploadDocu: React.FC<StateProps> = ({ plApplication }) => {
                 text="CONTINUE UPLOAD"
               />
               <div
-                onClick={() => history.push(`/application-summary/${type}`)}
+                onClick={() => history.push(`/application-saved`)}
                 className="mmk-upload-docu-skip"
               >
                 SAVE & CONTINUE LATER

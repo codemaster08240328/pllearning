@@ -1,5 +1,5 @@
 import React from 'react';
-
+import { Link } from 'react-router-dom';
 import { MenuIcon } from 'components/Icons';
 import ApplicationSavedSmallImg from 'assets/document-saved.png';
 import ApplicationSavedMediumImg from 'assets/document-saved@2x.png';
@@ -12,7 +12,9 @@ const ApplicationSaved = () => {
   return (
     <div className="application-saved">
       <div className="application-saved-top-section">
-        <h3 className="color-text-white font-calibri-bold">mymoneykarma</h3>
+        <Link to="/">
+          <h3 className="color-text-white font-calibri-bold">mymoneykarma</h3>
+        </Link>
         <MenuIcon size={24} />
       </div>
       <div className="application-saved-content">
